@@ -8,6 +8,8 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -16,6 +18,8 @@ import android.widget.TextView;
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.project.ken.vecurityguard.constants.AppData;
+import com.project.ken.vecurityguard.sessions.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,13 +45,15 @@ public class MainActivity extends AppCompatActivity {
     boolean timerRun;
     String oId;
     boolean accept = false;
+    SessionManager sessionManager;
+    String id;
 
 
     private Socket mSocket;
 
     {
         try {
-            mSocket = IO.socket("http://10.0.2.2:3000");
+            mSocket = IO.socket(AppData.POOLHOST);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -57,6 +63,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sessionManager = new SessionManager(MainActivity.this);
+        id = sessionManager.getUserID();
 
         mCarOwnerName = findViewById(R.id.car_owner_name);
         mLicenseNumber = findViewById(R.id.license_number);
@@ -70,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
         hideRequestLayout();
 
-        mSocket.emit("disconn guard", "2");
-        mSocket.emit("add guard", "2");
+        mSocket.emit("disconn guard", id);
+        mSocket.emit("add guard", id);
         mSocket.on("send request", onNewRequest);
         mSocket.connect();
 
@@ -216,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
         accept = true;
 
         mSocket.emit("accept", new JSONObject()
-                .put("guardId", "2")
+                .put("guardId", id)
                 .put("ownerId", ownerId)
                 .put("status", "accepted"));
 
@@ -233,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mSocket.emit("decline", new JSONObject()
-                .put("guardId", "2")
+                .put("guardId", id)
                 .put("ownerId", ownerId)
                 .put("status", "declined"));
         hideRequestLayout();
@@ -241,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void noResponse() throws JSONException {
         mSocket.emit("no response", new JSONObject()
-                .put("guardId", "2")
+                .put("guardId", id)
                 .put("ownerId", oId)
                 .put("status", "No response"));
         hideRequestLayout();
@@ -264,6 +273,34 @@ public class MainActivity extends AppCompatActivity {
             this.duration = duration;
         }
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_logout) {
+            if(sessionManager.isLoggedIn()){
+                sessionManager.logoutUser();
+                mSocket.disconnect();
+                mSocket.off("new request", onNewRequest);
+                finish();
+            }
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
 }

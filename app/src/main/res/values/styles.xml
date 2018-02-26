@@ -28,4 +28,11 @@
         <item name="android:minWidth">1dip</item>
     </style>
 
+    <style name="loginButtonTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:textColorPrimary">#fff</item>
+        <item name="colorButtonNormal">@color/colorPrimary</item>
+        <item name="android:minHeight">0dip</item>
+        <item name="android:minWidth">1dip</item>
+    </style>
+
 </resources>
