@@ -129,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
         String vehicleType = null;
         String duration = null;
 
+        Log.d("OwnerData", Arrays.toString(args));
+
         try {
             carOwnerId = data.getString("carOwnerId");
             carOwnerName = data.getString("carOwnerName");
