@@ -233,6 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent i = new Intent(MainActivity.this, CounterActivity.class);
         i.putExtra("durationMillis", TimeUnit.HOURS.toMillis(duration));
+        i.putExtra("ownerId", ownerId);
         startActivity(i);
         finish();
     }

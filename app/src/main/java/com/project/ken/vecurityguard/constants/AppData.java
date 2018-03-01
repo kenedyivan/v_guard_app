@@ -21,4 +21,8 @@ public class AppData {
     public static String findGuard() {
         return POOLHOST + "/find-guard";
     }
+
+    public static String finishGuardProcess() {
+        return POOLHOST + "/finish-guard";
+    }
 }
