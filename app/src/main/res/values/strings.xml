@@ -19,4 +19,7 @@
     <string name="location_settings_inadequate_warning">The location settings on the device are not
         adequate to run this sample. Fix in Settings.</string>
     <string name="time_done">done!</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="sign_up_directive">Enter the details below to sign up</string>
+    <string name="my_link">By proceeding, you agree to our<a href="https://www.google.com/"> Privacy Policy</a> and <a href="https://www.google.com/">Terms of Use.</a></string>
 </resources>

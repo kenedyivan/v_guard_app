@@ -4,17 +4,30 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.project.ken.vecurityguard.Models.User;
 import com.project.ken.vecurityguard.constants.AppData;
 import com.project.ken.vecurityguard.sessions.SessionManager;
 
@@ -28,128 +41,91 @@ public class LoginActivity extends AppCompatActivity {
     EditText mEmailEt;
     EditText mPasswordEt;
     Button mLoginBtn;
-    SessionManager sessionManager;
+    LinearLayout mRootLayout;
+    TextView mSignupTx;
+
+    FirebaseAuth auth;
+    FirebaseDatabase db;
+    DatabaseReference users;
+
+    ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        ActionBar actionBar = getSupportActionBar();
+        assert actionBar != null;
+        actionBar.hide();
 
-        sessionManager = new SessionManager(LoginActivity.this);
+        progress();
 
-        if(sessionManager.isLoggedIn()){
-            Intent i = new Intent(LoginActivity.this,MainActivity.class);
-            startActivity(i);
-            finish();
-        }
+        //Init Firebase
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseDatabase.getInstance();
+        users = db.getReference("Users");
+
 
         initializeViews();
 
         mLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 loginProcess();
+
+            }
+        });
+
+        mSignupTx.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(LoginActivity.this, SignupActivity.class);
+                startActivity(i);
             }
         });
     }
 
-    private void initializeViews(){
+    private void initializeViews() {
         mEmailEt = findViewById(R.id.email);
         mPasswordEt = findViewById(R.id.password);
         mLoginBtn = findViewById(R.id.email_sign_in_button);
+        mRootLayout = findViewById(R.id.rootLayoutLogin);
+        mSignupTx = findViewById(R.id.sign_up);
     }
 
-    private void loginProcess(){
-        String email = mEmailEt.getText().toString();
-        String password = mPasswordEt.getText().toString();
+    private void loginProcess() {
+        final String email = mEmailEt.getText().toString();
+        final String password = mPasswordEt.getText().toString();
+        mProgressDialog.show();
+        auth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                    @Override
+                    public void onSuccess(AuthResult authResult) {
+                        Snackbar.make(mRootLayout, "Login successful", Snackbar.LENGTH_SHORT)
+                                .show();
+                        startActivity(new Intent(LoginActivity.this, MapsActivity.class));
+                        finish();
+                    }
 
-        processLogin(email, password);
+
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Snackbar.make(mRootLayout, "Login failed " + e.getMessage(), Snackbar.LENGTH_SHORT)
+                        .show();
+            }
+        });
+        mProgressDialog.dismiss();
+
+
     }
 
-    private void processLogin(String email, String password){
-        RequestParams params = new RequestParams();
-        params.put("email", email);
-        params.put("password", password);
-
-        final ProgressDialog mProgressDialog;
+    private void progress() {
         mProgressDialog = new ProgressDialog(LoginActivity.this);
         mProgressDialog.setMessage("Logging in........");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mProgressDialog.setCancelable(true);
-
-        AsyncHttpClient client = new AsyncHttpClient();
-        client.post(AppData.LoginGuard(), params, new AsyncHttpResponseHandler() {
-
-            @Override
-            public void onStart() {
-                // called before request is started
-                Log.d(TAG, "Started request");
-                mProgressDialog.show();
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-
-                Log.d(TAG, "Status: " + statusCode);
-                String resp = new String(response);
-                Log.d(TAG, "Response: " + resp);
-                mProgressDialog.dismiss();
-
-                try {
-                    JSONObject jsonObject = new JSONObject(resp);
-                    int success = jsonObject.getInt("success");
-                    int error = jsonObject.getInt("error");
-                    int id = jsonObject.getInt("id");
-
-                    Log.d("Success: ", String.valueOf(success));
-                    Log.d("Error: ", String.valueOf(error));
-
-                    if (error == 0 && success == 1 && id != 0) {
-
-                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_LONG).show();
-
-                        sessionManager.createLoginSession(String.valueOf(id));
-
-                        Intent i = new Intent(LoginActivity.this, MainActivity.class);
-                        // Closing all the Activities
-                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        // Add new Flag to start new Activity
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                        startActivity(i);
-
-                        finish();
-
-                    } else if (error == 1 && success == 0) {
-                        Toast.makeText(LoginActivity.this, "Login unsuccessful", Toast.LENGTH_LONG).show();
-
-                    } else if (error == 2 && success == 0) {
-                        Toast.makeText(LoginActivity.this, "No credentials", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Unknown error", Toast.LENGTH_LONG).show();
-                    }
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                Log.d(TAG, "failed " + statusCode);
-                mProgressDialog.dismiss();
-                Toast.makeText(LoginActivity.this, "Network error", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onRetry(int retryNo) {
-                // called when request is retried
-                Log.d(TAG, "retryNO: " + retryNo);
-                Toast.makeText(LoginActivity.this, "Taking too long", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
+
 }

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "400920472071",
+    "firebase_url": "https://vecurityapp.firebaseio.com",
+    "project_id": "vecurityapp",
+    "storage_bucket": "vecurityapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:400920472071:android:69df877708f316a0",
+        "android_client_info": {
+          "package_name": "com.project.ken.vecurityguard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "400920472071-rtfmhk1mqmbk1kuthag9drvscmj3fn9l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.ken.vecurityguard",
+            "certificate_hash": "4a77f964fc850ccba811ad18c948a131087a0880"
+          }
+        },
+        {
+          "client_id": "400920472071-oeh8qr9j1c8uu71p96nc98galb3akjj9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBISOwhvaq_o7yq4ayu0nGlM9UXqxwveqk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "400920472071-oeh8qr9j1c8uu71p96nc98galb3akjj9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

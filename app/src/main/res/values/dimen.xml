@@ -10,4 +10,5 @@
 
     <dimen name="small_margin">10dp</dimen>
     <dimen name="activity_login_padding">40dp</dimen>
+    <dimen name="input_fields_margin">10dp</dimen>
 </resources>

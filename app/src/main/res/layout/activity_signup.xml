@@ -4,13 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activity_login_padding"
-    tools:context="com.project.ken.vecurityguard.LoginActivity"
-    android:id="@+id/rootLayoutLogin">
+    android:paddingLeft="@dimen/activity_login_padding"
+    android:paddingRight="@dimen/activity_login_padding"
+    android:paddingBottom="20dp"
+    android:paddingTop="20dp"
+    tools:context="com.project.ken.vecurityguard.SignupActivity"
+    android:id="@+id/rootLayout">
 
+    <ScrollView
+        android:id="@+id/login_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none">
 
     <LinearLayout
-        android:id="@+id/email_login_form"
+        android:id="@+id/email_signup_form"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -18,16 +26,19 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
             android:orientation="vertical"
-            android:paddingBottom="50dp"
-            android:paddingTop="70dp">
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="Vecurity Guard"
-                android:textSize="35sp" />
+                android:text="@string/sign_up_directive"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
@@ -38,28 +49,55 @@
             android:paddingLeft="5dp"
             android:paddingRight="5dp">
 
+
+
             <EditText
-                android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_marginBottom="@dimen/input_fields_margin"
+                android:layout_weight="1"
+                android:background="@drawable/bg_email_password"
+                android:ems="10"
+                android:hint="Full name"
+                android:inputType="textPersonName"
+                android:padding="10dp"
+                android:id="@+id/name"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/input_fields_margin"
                 android:layout_weight="1"
                 android:background="@drawable/bg_email_password"
                 android:ems="10"
                 android:hint="Email"
                 android:inputType="textEmailAddress"
-                android:padding="10dp" />
+                android:padding="10dp"
+                android:id="@+id/email"/>
 
             <EditText
-                android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/input_fields_margin"
                 android:layout_weight="1"
                 android:background="@drawable/bg_email_password"
                 android:ems="10"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:padding="10dp" />
+                android:hint="Phone"
+                android:inputType="phone"
+                android:padding="10dp"
+                android:id="@+id/phone"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/input_fields_margin"
+                android:layout_weight="1"
+                android:background="@drawable/bg_email_password"
+                android:ems="10"
+                android:hint="Create password"
+                android:padding="10dp"
+                android:id="@+id/password"
+                android:inputType="textPassword"/>
 
         </LinearLayout>
 
@@ -68,35 +106,34 @@
             android:layout_height="wrap_content">
 
             <Button
-                android:id="@+id/email_sign_in_button"
+                android:id="@+id/email_sign_up_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:paddingBottom="21dp"
                 android:paddingTop="21dp"
-                android:text="Login"
+                android:text="Signup"
                 android:textStyle="bold"
                 android:theme="@style/loginButtonTheme" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="10dp">
 
             <TextView
-                android:id="@+id/sign_up"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:clickable="true"
-                android:paddingBottom="10dp"
-                android:text="Sign up"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textStyle="bold" />
+                android:autoLink="web"
+                android:text="@string/my_link"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                />
 
         </LinearLayout>
     </LinearLayout>
+    </ScrollView>
 </LinearLayout>
