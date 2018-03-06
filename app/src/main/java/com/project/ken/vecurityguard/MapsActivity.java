@@ -48,9 +48,11 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Models.Token;
@@ -110,6 +112,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Polyline blackPolyline, greyPolyline;
 
     private IGoogleAPI mService;
+
+
+    //Presence System
+    DatabaseReference onlineRef, currentUserRef;
 
 
     Runnable drawPathRunnable = new Runnable() {
@@ -179,17 +185,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
+        //Presence System
+        onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
+        currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        onlineRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //Remove value from Guard table when guard disconnects
+                currentUserRef.onDisconnect().removeValue();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+
         //Init View
         location_switch = findViewById(R.id.location_switch);
         location_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isOnline) {
                 if (isOnline) {
+
+                    FirebaseDatabase.getInstance().goOnline(); //Sets connected when switch is turned on
+
                     startLocationUpdates();
                     displayLocation();
                     Snackbar.make(mapFragment.getView(), "You are online", Snackbar.LENGTH_SHORT)
                             .show();
                 } else {
+
+                    FirebaseDatabase.getInstance().goOffline(); //Sets disconnected when switch is turned off
+
+
                     stopLocationUpdates();
                     mCurrent.remove();
                     if(handler != null)
