@@ -18,7 +18,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.project.ken.vecurityguard.Models.User;
+import com.project.ken.vecurityguard.Common.Common;
+import com.project.ken.vecurityguard.Models.Guard;
 
 public class SignupActivity extends AppCompatActivity {
     private static String TAG = SignupActivity.class.getSimpleName();
@@ -48,7 +49,7 @@ public class SignupActivity extends AppCompatActivity {
         //Init Firebase
         auth = FirebaseAuth.getInstance();
         db = FirebaseDatabase.getInstance();
-        users = db.getReference("Users");
+        users = db.getReference(Common.user_guard_tbl);
 
         initializeViews();
         mSignupBtn.setOnClickListener(new View.OnClickListener() {
@@ -89,7 +90,7 @@ public class SignupActivity extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-                        User user = new User();
+                        Guard user = new Guard();
                         user.setName(name);
                         user.setEmail(email);
                         user.setPhone(phone);

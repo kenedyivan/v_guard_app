@@ -29,7 +29,7 @@ public class SessionManager {
     // All Shared Preferences Keys
     private static final String IS_LOGIN = "IsLoggedIn";
 
-    // User id (make variable public to access from outside)
+    // Guard id (make variable public to access from outside)
     public static final String KEY_ID = "id";
 
     // Constructor

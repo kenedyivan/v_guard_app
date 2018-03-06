@@ -4,17 +4,17 @@ package com.project.ken.vecurityguard.Models;
  * Created by ken on 3/2/18.
  */
 
-public class User {
+public class Guard {
     private String name, email, phone, password;
 
-    public User(String name, String email, String phone, String password) {
+    public Guard(String name, String email, String phone, String password) {
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.password = password;
     }
 
-    public User() {
+    public Guard() {
     }
 
     public String getName() {
