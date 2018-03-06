@@ -82,7 +82,10 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".CarOwnerCallActivity"></activity>
+        <activity android:name=".CarOwnerCallActivity" />
+        <activity
+            android:name=".GuardTrackingActivity"
+            android:label="@string/title_activity_guard_tracking"></activity>
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.project.ken.vecurityguard;
 
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -40,6 +41,8 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
     String carOwnerId;
 
+    double lat,lng;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +73,19 @@ public class CarOwnerCallActivity extends AppCompatActivity {
             }
         });
 
+        btnAccept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(CarOwnerCallActivity.this, GuardTrackingActivity.class);
+                //Sends car owner location to GuardTrackingActivity
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
+
+                startActivity(intent);
+                finish();
+            }
+        });
+
 
 
         mediaPlayer = MediaPlayer.create(this, R.raw.ringtone);
@@ -77,8 +93,8 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         mediaPlayer.start();
 
         if(getIntent() !=null){
-            double lat = getIntent().getDoubleExtra("lat",-1.0);
-            double lng = getIntent().getDoubleExtra("lng",-1.0);
+            lat = getIntent().getDoubleExtra("lat",-1.0);
+            lng = getIntent().getDoubleExtra("lng",-1.0);
             carOwnerId = getIntent().getStringExtra("car_owner_id");
 
             getDirection(lat, lng);
