@@ -19,6 +19,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(getBaseContext(), CarOwnerCallActivity.class);
         intent.putExtra("lat", carOwnerLocation.latitude);
         intent.putExtra("lng", carOwnerLocation.longitude);
+        intent.putExtra("car_owner_id", remoteMessage.getNotification().getTitle());
 
 
         startActivity(intent);

@@ -4,11 +4,19 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.project.ken.vecurityguard.Common.Common;
+import com.project.ken.vecurityguard.Models.FCMResponse;
+import com.project.ken.vecurityguard.Models.Notification;
+import com.project.ken.vecurityguard.Models.Sender;
+import com.project.ken.vecurityguard.Models.Token;
+import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
 
 import org.json.JSONArray;
@@ -23,9 +31,14 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
     TextView txtTime, txtAddress, txtDistance;
 
+    Button btnCancel, btnAccept;
+
     MediaPlayer mediaPlayer;
 
     IGoogleAPI mService;
+    IFCMService mFCMService;
+
+    String carOwnerId;
 
 
     @Override
@@ -38,11 +51,26 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         actionBar.hide();
 
         mService = Common.getGoogleAPI();
+        mFCMService = Common.getFCMService();
 
         //Init views
         txtAddress = findViewById(R.id.txtAddress);
         txtDistance = findViewById(R.id.txtDistance);
         txtTime = findViewById(R.id.txtTime);
+
+        btnAccept = findViewById(R.id.btnAccept);
+        btnCancel = findViewById(R.id.btnCancel);
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!TextUtils.isEmpty(carOwnerId)){
+                    cancelBooking(carOwnerId);
+                }
+            }
+        });
+
+
 
         mediaPlayer = MediaPlayer.create(this, R.raw.ringtone);
         mediaPlayer.setLooping(true);
@@ -51,10 +79,33 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         if(getIntent() !=null){
             double lat = getIntent().getDoubleExtra("lat",-1.0);
             double lng = getIntent().getDoubleExtra("lng",-1.0);
+            carOwnerId = getIntent().getStringExtra("car_owner_id");
 
             getDirection(lat, lng);
         }
 
+    }
+
+    private void cancelBooking(String carOwnerId) {
+        Token token = new Token(carOwnerId);
+
+        Notification notification = new Notification("Notice", "Guard has cancelled your request");
+        Sender sender = new Sender(token.getToken(), notification);
+
+        mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
+            @Override
+            public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                if(response.body().success == 1){
+                    Toast.makeText(CarOwnerCallActivity.this, "Cancelled",Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+            }
+        });
     }
 
     private void getDirection(double lat, double lng) {

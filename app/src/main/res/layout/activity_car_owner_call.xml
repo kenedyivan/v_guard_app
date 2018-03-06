@@ -52,4 +52,36 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:paddingBottom="21dp"
+            android:paddingTop="21dp"
+            android:text="Cancel"
+            android:textStyle="bold"
+            android:theme="@style/declineButtonTheme" />
+
+        <Button
+            android:id="@+id/btnAccept"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:paddingBottom="21dp"
+            android:paddingTop="21dp"
+            android:text="Accept"
+            android:textStyle="bold"
+            android:theme="@style/acceptButtonTheme" />
+    </LinearLayout>
+
+
 </RelativeLayout>
