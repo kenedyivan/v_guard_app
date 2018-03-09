@@ -36,6 +36,13 @@
         <item name="android:minWidth">1dip</item>
     </style>
 
+    <style name="guardButtonTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:textColorPrimary">#fff</item>
+        <item name="colorButtonNormal">#03A9F4</item>
+        <item name="android:minHeight">0dip</item>
+        <item name="android:minWidth">1dip</item>
+    </style>
+
     <style name="CustomLoginDialog" parent="android:Theme.DeviceDefault.Dialog">
         <item name="DialogTitleAppearance">@android:style/TextAppearance.Medium</item>
         <item name="DialogTitleText">Logging in…</item>

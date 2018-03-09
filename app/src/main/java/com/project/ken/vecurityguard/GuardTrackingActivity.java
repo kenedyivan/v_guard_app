@@ -3,6 +3,7 @@ package com.project.ken.vecurityguard;
 import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -14,7 +15,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
@@ -72,6 +75,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
+    Button btnStartGuarding;
+
     private GoogleMap mMap;
 
     double ownerLat, ownerLng;
@@ -111,6 +116,17 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        //Init views
+        btnStartGuarding = findViewById(R.id.btnStartGuarding);
+        btnStartGuarding.setVisibility(View.GONE);
+
+        btnStartGuarding.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startGuarding(carOwnerId);
+            }
+        });
+
         if (getIntent() != null) {
             ownerLat = getIntent().getDoubleExtra("lat", -1.0);
             ownerLng = getIntent().getDoubleExtra("lng", -1.0);
@@ -121,6 +137,27 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         mFCMService = Common.getFCMService();
 
         setUpLocation();
+    }
+
+    private void startGuarding(String carOwnerId) {
+        Token token = new Token(carOwnerId);
+
+        Notification notification = new Notification("Guarding", "Guarding has started");
+        Sender sender = new Sender(token.getToken(), notification);
+
+        mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
+            @Override
+            public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                if (response.body().success == 1) {
+                    Toast.makeText(GuardTrackingActivity.this, "Started guarding", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+            }
+        });
     }
 
 
@@ -171,14 +208,16 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         Token token = new Token(carOwnerId);
         Notification notification = new Notification("Arrived",
                 String.format("The guard %s has arrived at your location", Common.currentGuard.getName()));
-        Sender sender = new Sender(token.getToken(),notification);
+        Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
             @Override
             public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
-                if(response.body().success !=1){
-                    Toast.makeText(GuardTrackingActivity.this,"Failed",Toast.LENGTH_SHORT)
+                if (response.body().success != 1) {
+                    Toast.makeText(GuardTrackingActivity.this, "Failed", Toast.LENGTH_SHORT)
                             .show();
+                } else if (response.body().success == 1) {
+                    btnStartGuarding.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -343,7 +382,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     }
 
 
-    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+    class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
         ProgressDialog mDialog = new ProgressDialog(GuardTrackingActivity.this);
 
@@ -402,7 +441,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             }
 
-            direction = mMap.addPolyline(polylineOptions);
+            if (direction != null)
+                direction = mMap.addPolyline(polylineOptions);
         }
     }
 }
