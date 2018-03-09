@@ -41,7 +41,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
     String carOwnerId;
 
-    double lat,lng;
+    double lat, lng;
 
 
     @Override
@@ -67,7 +67,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!TextUtils.isEmpty(carOwnerId)){
+                if (!TextUtils.isEmpty(carOwnerId)) {
                     cancelBooking(carOwnerId);
                 }
             }
@@ -76,32 +76,54 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         btnAccept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(CarOwnerCallActivity.this, GuardTrackingActivity.class);
-                //Sends car owner location to GuardTrackingActivity
-                intent.putExtra("lat", lat);
-                intent.putExtra("lng", lng);
-                intent.putExtra("car_owner_id", carOwnerId);
-
-                startActivity(intent);
-                finish();
+                acceptRequest(carOwnerId);
             }
         });
-
 
 
         mediaPlayer = MediaPlayer.create(this, R.raw.ringtone);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
 
-        if(getIntent() !=null){
-            lat = getIntent().getDoubleExtra("lat",-1.0);
-            lng = getIntent().getDoubleExtra("lng",-1.0);
+        if (getIntent() != null) {
+            lat = getIntent().getDoubleExtra("lat", -1.0);
+            lng = getIntent().getDoubleExtra("lng", -1.0);
             carOwnerId = getIntent().getStringExtra("car_owner_id");
 
             getDirection(lat, lng);
         }
 
     }
+
+    private void acceptRequest(final String carOwnerId) {
+        Token token = new Token(carOwnerId);
+
+        Notification notification = new Notification("Accept", "Guard has accepted your request");
+        Sender sender = new Sender(token.getToken(), notification);
+
+        mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
+            @Override
+            public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                if (response.body().success == 1) {
+                    Toast.makeText(CarOwnerCallActivity.this, "Accepted", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(CarOwnerCallActivity.this, GuardTrackingActivity.class);
+                    //Sends car owner location to GuardTrackingActivity
+                    intent.putExtra("lat", lat);
+                    intent.putExtra("lng", lng);
+                    intent.putExtra("car_owner_id", carOwnerId);
+
+                    startActivity(intent);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+            }
+        });
+    }
+
     private void cancelBooking(String carOwnerId) {
         Token token = new Token(carOwnerId);
 
@@ -111,8 +133,8 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
             @Override
             public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
-                if(response.body().success == 1){
-                    Toast.makeText(CarOwnerCallActivity.this, "Cancelled",Toast.LENGTH_SHORT).show();
+                if (response.body().success == 1) {
+                    Toast.makeText(CarOwnerCallActivity.this, "Cancelled", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }
@@ -126,7 +148,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
     private void getDirection(double lat, double lng) {
 
-        String destination = lat+","+lng;
+        String destination = lat + "," + lng;
 
         String requestApi;
         try {
