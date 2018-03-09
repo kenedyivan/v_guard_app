@@ -1,5 +1,6 @@
 package com.project.ken.vecurityguard;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,6 +22,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Models.Guard;
 
+import dmax.dialog.SpotsDialog;
+
 public class SignupActivity extends AppCompatActivity {
     private static String TAG = SignupActivity.class.getSimpleName();
     EditText mNameEt;
@@ -34,8 +37,6 @@ public class SignupActivity extends AppCompatActivity {
     FirebaseDatabase db;
     DatabaseReference users;
 
-    ProgressDialog mProgressDialog;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,7 +45,6 @@ public class SignupActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        progress();
 
         //Init Firebase
         auth = FirebaseAuth.getInstance();
@@ -62,12 +62,6 @@ public class SignupActivity extends AppCompatActivity {
 
     }
 
-    private void progress() {
-        mProgressDialog = new ProgressDialog(SignupActivity.this);
-        mProgressDialog.setMessage("Signing up........");
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(true);
-    }
 
     private void initializeViews() {
         mNameEt = findViewById(R.id.name);
@@ -84,7 +78,8 @@ public class SignupActivity extends AppCompatActivity {
         final String phone = mPhoneEt.getText().toString();
         final String password = mPasswordEt.getText().toString();
 
-        mProgressDialog.show();
+        final AlertDialog waitingDialog = new SpotsDialog(SignupActivity.this, R.style.CustomSignUpDialog);
+        waitingDialog.show();
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
@@ -103,26 +98,28 @@ public class SignupActivity extends AppCompatActivity {
                                     public void onSuccess(Void aVoid) {
                                         Snackbar.make(mRootLayout, "Sign up successful", Snackbar.LENGTH_SHORT)
                                                 .show();
+                                        waitingDialog.dismiss();
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        Snackbar.make(mRootLayout, "Sign up failed "+e.getMessage(), Snackbar.LENGTH_SHORT)
+                                        Snackbar.make(mRootLayout, "Sign up failed " + e.getMessage(), Snackbar.LENGTH_SHORT)
                                                 .show();
+                                        waitingDialog.dismiss();
                                     }
                                 });
                     }
                 })
-        .addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Snackbar.make(mRootLayout,"Sign up failed "+e.getMessage(), Snackbar.LENGTH_SHORT)
-                        .show();
-            }
-        });
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Snackbar.make(mRootLayout, "Sign up failed " + e.getMessage(), Snackbar.LENGTH_SHORT)
+                                .show();
+                        waitingDialog.dismiss();
+                    }
+                });
 
-        mProgressDialog.dismiss();
 
     }
 

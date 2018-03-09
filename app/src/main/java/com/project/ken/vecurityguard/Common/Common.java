@@ -2,6 +2,7 @@ package com.project.ken.vecurityguard.Common;
 
 import android.location.Location;
 
+import com.project.ken.vecurityguard.Models.Guard;
 import com.project.ken.vecurityguard.Remote.FCMRetrofitClient;
 import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
@@ -15,6 +16,8 @@ public class Common {
     public static final String user_owner_tbl = "OwnersInformation";
     public static final String guard_request_tbl = "GuardRequest";
     public static final String fcm_tokens_tbl = "FcmTokens";
+
+    public static Guard currentGuard;
 
     public static Location mLastLocation = null;
 

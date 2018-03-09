@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -43,8 +45,14 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Helper.DirectionsJSONParser;
+import com.project.ken.vecurityguard.Models.FCMResponse;
+import com.project.ken.vecurityguard.Models.Notification;
+import com.project.ken.vecurityguard.Models.Sender;
+import com.project.ken.vecurityguard.Models.Token;
+import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
 
 import org.json.JSONArray;
@@ -86,6 +94,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     private IGoogleAPI mService;
 
+    IFCMService mFCMService;
+
+    GeoFire geoFire;
+
+    String carOwnerId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,9 +114,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         if (getIntent() != null) {
             ownerLat = getIntent().getDoubleExtra("lat", -1.0);
             ownerLng = getIntent().getDoubleExtra("lng", -1.0);
+            carOwnerId = getIntent().getStringExtra("car_owner_id");
         }
 
         mService = Common.getGoogleAPI();
+        mFCMService = Common.getFCMService();
+
         setUpLocation();
     }
 
@@ -113,11 +130,63 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
         ownerMaker = mMap.addCircle(new CircleOptions()
                 .center(new LatLng(ownerLat, ownerLng))
-                .radius(10)
+                .radius(50) //50 => radius set to 50m
                 .strokeColor(Color.BLUE)
                 .fillColor(0x220000FF)
                 .strokeWidth(5.0f));
 
+        //Create Geo fencing with radius of 50m
+        geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference(Common.guards_tbl));
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(ownerLat, ownerLng), 0.05f);
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                sendArrivedNotification(carOwnerId);
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+
+            }
+        });
+
+    }
+
+    private void sendArrivedNotification(String carOwnerId) {
+        Token token = new Token(carOwnerId);
+        Notification notification = new Notification("Arrived",
+                String.format("The guard %s has arrived at your location", Common.currentGuard.getName()));
+        Sender sender = new Sender(token.getToken(),notification);
+
+        mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
+            @Override
+            public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                if(response.body().success !=1){
+                    Toast.makeText(GuardTrackingActivity.this,"Failed",Toast.LENGTH_SHORT)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+            }
+        });
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.project.ken.vecurityguard;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,9 +18,15 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.project.ken.vecurityguard.Common.Common;
+import com.project.ken.vecurityguard.Models.Guard;
+
+import dmax.dialog.SpotsDialog;
 
 public class LoginActivity extends AppCompatActivity {
     private static String TAG = LoginActivity.class.getSimpleName();
@@ -33,7 +40,6 @@ public class LoginActivity extends AppCompatActivity {
     FirebaseDatabase db;
     DatabaseReference users;
 
-    ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +49,6 @@ public class LoginActivity extends AppCompatActivity {
         assert actionBar != null;
         actionBar.hide();
 
-        progress();
 
         //Init Firebase
         auth = FirebaseAuth.getInstance();
@@ -82,13 +87,32 @@ public class LoginActivity extends AppCompatActivity {
     private void loginProcess() {
         final String email = mEmailEt.getText().toString();
         final String password = mPasswordEt.getText().toString();
-        mProgressDialog.show();
+
+        final AlertDialog waitingDialog = new SpotsDialog(LoginActivity.this, R.style.CustomLoginDialog);
+        waitingDialog.show();
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         Snackbar.make(mRootLayout, "Login successful", Snackbar.LENGTH_SHORT)
                                 .show();
+                        waitingDialog.dismiss();
+
+                        FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl)
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        Common.currentGuard = dataSnapshot.getValue(Guard.class);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
+
                         startActivity(new Intent(LoginActivity.this, MapsActivity.class));
                         finish();
                     }
@@ -99,18 +123,13 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(@NonNull Exception e) {
                 Snackbar.make(mRootLayout, "Login failed " + e.getMessage(), Snackbar.LENGTH_SHORT)
                         .show();
+                waitingDialog.dismiss();
             }
         });
-        mProgressDialog.dismiss();
+
 
 
     }
 
-    private void progress() {
-        mProgressDialog = new ProgressDialog(LoginActivity.this);
-        mProgressDialog.setMessage("Logging in........");
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(true);
-    }
 
 }

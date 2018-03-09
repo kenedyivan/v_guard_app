@@ -36,4 +36,22 @@
         <item name="android:minWidth">1dip</item>
     </style>
 
+    <style name="CustomLoginDialog" parent="android:Theme.DeviceDefault.Dialog">
+        <item name="DialogTitleAppearance">@android:style/TextAppearance.Medium</item>
+        <item name="DialogTitleText">Logging in…</item>
+        <item name="DialogSpotColor">@android:color/holo_red_dark</item>
+        <item name="DialogSpotCount">4</item>
+        <item name="android:background">@android:color/white</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="CustomSignUpDialog" parent="android:Theme.DeviceDefault.Dialog">
+        <item name="DialogTitleAppearance">@android:style/TextAppearance.Medium</item>
+        <item name="DialogTitleText">Signing up…</item>
+        <item name="DialogSpotColor">@android:color/holo_red_dark</item>
+        <item name="DialogSpotCount">4</item>
+        <item name="android:background">@android:color/white</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
 </resources>

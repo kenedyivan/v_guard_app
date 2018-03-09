@@ -21,13 +21,20 @@
             android:orientation="vertical"
             android:paddingBottom="50dp"
             android:paddingTop="70dp">
+            <ImageView
+                android:layout_width="233dp"
+                android:layout_height="65dp"
+                android:src="@drawable/vehc_logo_scaled"
+                android:layout_gravity="center_horizontal"/>
 
             <TextView
+                android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="Vecurity Guard"
-                android:textSize="35sp" />
+                android:text="Guard"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
 
         </LinearLayout>
 

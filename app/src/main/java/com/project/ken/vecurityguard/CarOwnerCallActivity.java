@@ -80,6 +80,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
                 //Sends car owner location to GuardTrackingActivity
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
+                intent.putExtra("car_owner_id", carOwnerId);
 
                 startActivity(intent);
                 finish();
@@ -101,11 +102,10 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         }
 
     }
-
     private void cancelBooking(String carOwnerId) {
         Token token = new Token(carOwnerId);
 
-        Notification notification = new Notification("Notice", "Guard has cancelled your request");
+        Notification notification = new Notification("Cancel", "Guard has cancelled your request");
         Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
