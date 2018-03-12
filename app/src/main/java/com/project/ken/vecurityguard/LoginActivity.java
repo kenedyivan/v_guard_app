@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,6 +26,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Models.Guard;
+import com.project.ken.vecurityguard.Models.Guarding;
+
+import java.util.Calendar;
+import java.util.Date;
 
 import dmax.dialog.SpotsDialog;
 
@@ -82,6 +87,9 @@ public class LoginActivity extends AppCompatActivity {
         mLoginBtn = findViewById(R.id.email_sign_in_button);
         mRootLayout = findViewById(R.id.rootLayoutLogin);
         mSignupTx = findViewById(R.id.sign_up);
+
+        mEmailEt.setText("kenedyguard@gmail.com");
+        mPasswordEt.setText("123456");
     }
 
     private void loginProcess() {
@@ -126,7 +134,6 @@ public class LoginActivity extends AppCompatActivity {
                 waitingDialog.dismiss();
             }
         });
-
 
 
     }

@@ -42,6 +42,9 @@ public class CarOwnerCallActivity extends AppCompatActivity {
     String carOwnerId;
 
     double lat, lng;
+    int duration;
+    double totalCost;
+    String ownerDBId;
 
 
     @Override
@@ -88,6 +91,9 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         if (getIntent() != null) {
             lat = getIntent().getDoubleExtra("lat", -1.0);
             lng = getIntent().getDoubleExtra("lng", -1.0);
+            duration = getIntent().getIntExtra("duration", 0);
+            totalCost = getIntent().getDoubleExtra("total_cost", 0);
+            ownerDBId = getIntent().getStringExtra("owner_id");
             carOwnerId = getIntent().getStringExtra("car_owner_id");
 
             getDirection(lat, lng);
@@ -110,6 +116,9 @@ public class CarOwnerCallActivity extends AppCompatActivity {
                     //Sends car owner location to GuardTrackingActivity
                     intent.putExtra("lat", lat);
                     intent.putExtra("lng", lng);
+                    intent.putExtra("owner_id", ownerDBId);
+                    intent.putExtra("duration", duration);
+                    intent.putExtra("total_cost", totalCost);
                     intent.putExtra("car_owner_id", carOwnerId);
 
                     startActivity(intent);

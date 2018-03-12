@@ -1,23 +1,23 @@
 package com.project.ken.vecurityguard;
 
-import android.animation.ValueAnimator;
-import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.CardView;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
@@ -30,7 +30,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -38,33 +37,35 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.SquareCap;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Helper.DirectionsJSONParser;
 import com.project.ken.vecurityguard.Models.FCMResponse;
+import com.project.ken.vecurityguard.Models.Guarding;
 import com.project.ken.vecurityguard.Models.Notification;
 import com.project.ken.vecurityguard.Models.Sender;
 import com.project.ken.vecurityguard.Models.Token;
 import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -80,6 +81,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     private GoogleMap mMap;
 
     double ownerLat, ownerLng;
+    int duration;
+    double totalCost;
+    String ownerId;
 
     //Play services
     private static final int PLAY_SERVICE_RES_REQUEST = 6001;
@@ -105,6 +109,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     String carOwnerId;
 
+    //Views
+    TextView mCounterTv;
+    TextView mDoneTv;
+    CardView crdCounter;
+    ImageView imgShield;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,6 +129,10 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         //Init views
         btnStartGuarding = findViewById(R.id.btnStartGuarding);
         btnStartGuarding.setVisibility(View.GONE);
+        mCounterTv = findViewById(R.id.counter);
+        mDoneTv = findViewById(R.id.done);
+        crdCounter = findViewById(R.id.crdCounter);
+        imgShield = findViewById(R.id.shield);
 
         btnStartGuarding.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,6 +144,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         if (getIntent() != null) {
             ownerLat = getIntent().getDoubleExtra("lat", -1.0);
             ownerLng = getIntent().getDoubleExtra("lng", -1.0);
+            duration = getIntent().getIntExtra("duration", 0);
+            totalCost = getIntent().getDoubleExtra("total_cost", 0);
+            ownerId = getIntent().getStringExtra("owner_id");
             carOwnerId = getIntent().getStringExtra("car_owner_id");
         }
 
@@ -145,11 +162,16 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         Notification notification = new Notification("Guarding", "Guarding has started");
         Sender sender = new Sender(token.getToken(), notification);
 
+
+        saveGuardingToDB();
+
+
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
             @Override
             public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
                 if (response.body().success == 1) {
                     Toast.makeText(GuardTrackingActivity.this, "Started guarding", Toast.LENGTH_SHORT).show();
+                    runCounter();
                 }
             }
 
@@ -158,6 +180,63 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             }
         });
+    }
+
+    private void runCounter() {
+        btnStartGuarding.setEnabled(false);
+        btnStartGuarding.setText("Guarding...");
+        crdCounter.setVisibility(View.VISIBLE);
+        new CountDownTimer(10 * 1000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                long millis = millisUntilFinished;
+                //mCounterTv.setText(String.valueOf(millisUntilFinished / 1000));
+                //here you can have your logic to set text to edittext
+
+                mCounterTv.setText(String.format(Locale.ENGLISH, "%02d:%02d:%02d",
+                        TimeUnit.MILLISECONDS.toHours(millis),
+                        TimeUnit.MILLISECONDS.toMinutes(millis) -
+                                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+                        TimeUnit.MILLISECONDS.toSeconds(millis) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))));
+            }
+
+            public void onFinish() {
+                mCounterTv.setVisibility(View.GONE);
+                mDoneTv.setVisibility(View.VISIBLE);
+                mDoneTv.setText("done!");
+                imgShield.setImageResource(R.drawable.protected_shield_blue);
+                btnStartGuarding.setText("Guarding complete...");
+            }
+
+        }.start();
+    }
+
+
+    private void saveGuardingToDB() {
+        DatabaseReference mGuarding = FirebaseDatabase.getInstance().getReference("Guardings");
+        Date d = new Date();
+        //CharSequence s = DateFormat.format("yyyy-MM-dd hh:mm:ss", d.getTime());
+        long millis = System.currentTimeMillis();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        String start_time = cal.getTime().toString();
+        cal.add(Calendar.HOUR_OF_DAY, duration);
+        String end_time = cal.getTime().toString();
+
+        Guarding guarding = new Guarding();
+        guarding.setGuard(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        guarding.setOwner(ownerId);
+        guarding.setDuration(String.valueOf(duration));
+        guarding.setStart_time(start_time);
+        guarding.setEnd_time(end_time);
+        guarding.setTotalCost(String.valueOf(totalCost));
+        guarding.setStatus("0");
+        String key = mGuarding.child("guard_time").push().getKey();
+        mGuarding.child(key)
+                .setValue(guarding);
+
     }
 
 
