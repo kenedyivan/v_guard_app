@@ -25,4 +25,10 @@
     <string name="google_direction_api">AIzaSyBISOwhvaq_o7yq4ayu0nGlM9UXqxwveqk</string>
     <!--<string name="google_direction_api">AIzaSyClSPshCv5twDX1q_ncuK8D_Co_y0xvpBs</string>-->
     <string name="title_activity_guard_tracking">Map</string>
+    <string name="title_activity_guard_home">Home</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
 </resources>

@@ -112,6 +112,8 @@ public class LoginActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         Common.currentGuard = dataSnapshot.getValue(Guard.class);
+                                        startActivity(new Intent(LoginActivity.this, GuardHomeActivity.class));
+                                        finish();
                                     }
 
                                     @Override
@@ -121,8 +123,6 @@ public class LoginActivity extends AppCompatActivity {
                                 });
 
 
-                        startActivity(new Intent(LoginActivity.this, MapsActivity.class));
-                        finish();
                     }
 
 

@@ -5,16 +5,17 @@ package com.project.ken.vecurityguard.Models;
  */
 
 public class Guard {
-    private String name, email, phone, password;
+    private String name, email, phone, password,avatar;
 
-    public Guard(String name, String email, String phone, String password) {
+    public Guard() {
+    }
+
+    public Guard(String name, String email, String phone, String password, String avatar) {
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.password = password;
-    }
-
-    public Guard() {
+        this.avatar = avatar;
     }
 
     public String getName() {
@@ -47,5 +48,13 @@ public class Guard {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

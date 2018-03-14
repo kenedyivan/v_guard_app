@@ -85,7 +85,11 @@
         <activity android:name=".CarOwnerCallActivity" />
         <activity
             android:name=".GuardTrackingActivity"
-            android:label="@string/title_activity_guard_tracking"></activity>
+            android:label="@string/title_activity_guard_tracking" />
+        <activity
+            android:name=".GuardHomeActivity"
+            android:label="@string/title_activity_guard_home"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
