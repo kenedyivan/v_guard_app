@@ -88,8 +88,8 @@ public class LoginActivity extends AppCompatActivity {
         mRootLayout = findViewById(R.id.rootLayoutLogin);
         mSignupTx = findViewById(R.id.sign_up);
 
-        mEmailEt.setText("kenedyguard@gmail.com");
-        mPasswordEt.setText("123456");
+        /*mEmailEt.setText("kenedyguard@gmail.com");
+        mPasswordEt.setText("123456");*/
     }
 
     private void loginProcess() {

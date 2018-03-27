@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Guard</string>
+    <string name="app_name">Vehcurity Guard</string>
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
 

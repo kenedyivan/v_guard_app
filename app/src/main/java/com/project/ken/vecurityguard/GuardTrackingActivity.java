@@ -207,9 +207,14 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 mDoneTv.setText("done!");
                 imgShield.setImageResource(R.drawable.protected_shield_blue);
                 btnStartGuarding.setText("Guarding complete...");
+                counterFinished();
             }
 
         }.start();
+    }
+
+    private void counterFinished() {
+        Log.d("Counter","Counter finished");
     }
 
 
@@ -442,7 +447,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                             Log.d("Response", response.body());
                             try {
 
-                                new ParserTask().execute(response.body().toString());
+                                new ParserTask().execute(response.body());
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -520,7 +525,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             }
 
-            if (direction != null)
+            //if (direction != null)
                 direction = mMap.addPolyline(polylineOptions);
         }
     }
