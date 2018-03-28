@@ -3,9 +3,13 @@ package com.project.ken.vecurityguard.Service;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
+import android.os.Binder;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.widget.Toast;
+
+import java.util.Random;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -15,6 +19,12 @@ import android.widget.Toast;
  * helper methods.
  */
 public class CounterIntentService extends IntentService {
+
+    // Binder given to clients
+    private final IBinder mBinder = new CounterBinder();
+    // Random number generator
+    private final Random mGenerator = new Random();
+
 
     public CounterIntentService() {
         super("CounterIntentService");
@@ -30,11 +40,30 @@ public class CounterIntentService extends IntentService {
 
                 @Override
                 public void run() {
-                    Toast.makeText(getApplicationContext(),"My Awesome service toast...",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(),"My Awesome service toast...",Toast.LENGTH_SHORT).show();
                 }
             });
 
         }
     }
+
+    public class CounterBinder extends Binder {
+        public CounterIntentService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return CounterIntentService.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+    /** method for clients */
+    public int getRandomNumber() {
+        return mGenerator.nextInt(100);
+    }
+
+
 
 }

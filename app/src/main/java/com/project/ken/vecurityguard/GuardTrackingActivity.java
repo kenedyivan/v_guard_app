@@ -1,7 +1,12 @@
 package com.project.ken.vecurityguard;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -9,11 +14,13 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -61,6 +68,7 @@ import com.project.ken.vecurityguard.Models.Sender;
 import com.project.ken.vecurityguard.Models.Token;
 import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
+import com.project.ken.vecurityguard.Service.CounterIntentService;
 import com.project.ken.vecurityguard.constants.AppData;
 
 import org.json.JSONException;
@@ -124,6 +132,29 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     TextView mDoneTv;
     CardView crdCounter;
     ImageView imgShield;
+
+    CounterIntentService mCService;
+    boolean mBound = false;
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            CounterIntentService.CounterBinder binder = (CounterIntentService.CounterBinder) service;
+            mCService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -634,4 +665,50 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 direction = mMap.addPolyline(polylineOptions);
         }
     }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).
+                registerReceiver(mMessageReceiver, new IntentFilter("counterStart"));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(this).
+                unregisterReceiver(mMessageReceiver);
+        unbindService(mConnection);
+        mBound = false;
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(mConnection);
+        mBound = false;
+
+    }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+
+        @Override
+
+        public void onReceive(Context context, Intent intent) {
+
+            Log.d("BroadCast", "Start counter");
+            Intent i = new Intent(GuardTrackingActivity.this, CounterIntentService.class);
+            bindService(i, mConnection, Context.BIND_AUTO_CREATE);
+
+            if (mBound) {
+                int num = mCService.getRandomNumber();
+                Toast.makeText(GuardTrackingActivity.this, "number: " + num, Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+
+    };
 }

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -28,6 +29,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Log.d("Body", "" + remoteMessage.getNotification().getBody());
             Intent intent = new Intent(MyFirebaseMessagingService.this,CounterIntentService.class);
             startService(intent);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("counterStart"));
         } else {
             //Firebase message contains lat and lng from owner app
             JSONObject data;
