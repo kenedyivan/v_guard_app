@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     {
         try {
-            mSocket = IO.socket(AppData.POOLHOST);
+            mSocket = IO.socket("");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

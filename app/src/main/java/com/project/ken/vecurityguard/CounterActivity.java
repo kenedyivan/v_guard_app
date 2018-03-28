@@ -80,7 +80,7 @@ public class CounterActivity extends AppCompatActivity {
         mProgressDialog.setCancelable(true);
 
         AsyncHttpClient client = new AsyncHttpClient();
-        client.post(AppData.finishGuardProcess(), params, new AsyncHttpResponseHandler() {
+        client.post("", params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {

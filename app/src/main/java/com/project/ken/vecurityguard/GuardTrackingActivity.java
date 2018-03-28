@@ -1,14 +1,17 @@
 package com.project.ken.vecurityguard;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.CardView;
@@ -46,6 +49,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Helper.DirectionsJSONParser;
 import com.project.ken.vecurityguard.Models.FCMResponse;
@@ -55,6 +61,7 @@ import com.project.ken.vecurityguard.Models.Sender;
 import com.project.ken.vecurityguard.Models.Token;
 import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
+import com.project.ken.vecurityguard.constants.AppData;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,6 +74,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import cz.msebera.android.httpclient.Header;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -75,6 +83,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
+
+    private static final String TAG = GuardTrackingActivity.class.getSimpleName();
 
     Button btnStartGuarding;
 
@@ -229,8 +239,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         String start_time = cal.getTime().toString();
         cal.add(Calendar.HOUR_OF_DAY, duration);
         String end_time = cal.getTime().toString();
+        int hours = cal.get(Calendar.HOUR_OF_DAY);
+        int minutes = cal.get(Calendar.MINUTE);
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        Guarding guarding = new Guarding();
+        /*Guarding guarding = new Guarding();
         guarding.setGuard(FirebaseAuth.getInstance().getCurrentUser().getUid());
         guarding.setOwner(ownerId);
         guarding.setDuration(String.valueOf(duration));
@@ -240,7 +254,98 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         guarding.setStatus("0");
         String key = mGuarding.child("guard_time").push().getKey();
         mGuarding.child(key)
-                .setValue(guarding);
+                .setValue(guarding);*/
+        
+        createGuardingTask(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                ownerId,String.valueOf(duration),start_time,end_time,
+                String.valueOf(totalCost),"0",minutes,hours,day,month);
+
+    }
+
+    private void createGuardingTask(String guardId, String ownerId, String duration,
+                                    String startTime, String endTime, String totalCost, String status,
+                                    int minute, int hour, int date, int month) {
+        RequestParams params = new RequestParams();
+        params.put("guardId", guardId);
+        params.put("ownerId", ownerId);
+        params.put("duration", duration);
+        params.put("startTime", startTime);
+        params.put("endTime", endTime);
+        params.put("totalCost", totalCost);
+        params.put("status", status );
+        params.put("minute", minute );
+        params.put("hour", hour );
+        params.put("date", date );
+        params.put("month", month );
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("/");
+        sb.append(guardId);
+        sb.append("/");
+        sb.append(ownerId);
+        sb.append("/");
+        sb.append(duration);
+        sb.append("/");
+        sb.append(startTime);
+        sb.append("/");
+        sb.append(endTime);
+        sb.append("/");
+        sb.append(totalCost);
+        sb.append("/");
+        sb.append(status);
+        sb.append("/");
+        sb.append(minute);
+        sb.append("/");
+        sb.append(hour);
+        sb.append("/");
+        sb.append(date);
+        sb.append("/");
+        sb.append(month);
+
+        Log.d("Params", String.valueOf(sb));
+
+        final ProgressDialog mProgressDialog;
+        mProgressDialog = new ProgressDialog(GuardTrackingActivity.this);
+        mProgressDialog.setMessage("Creating guard session........");
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mProgressDialog.setCancelable(true);
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get(AppData.createGuardProcess()+String.valueOf(sb), params, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {
+                // called before request is started
+                Log.d(TAG, "Started request");
+                mProgressDialog.show();
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+
+                Log.d(TAG, "Status: " + statusCode);
+                String resp = new String(response);
+                Log.d(TAG, "Response: " + resp);
+                mProgressDialog.dismiss();
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                Log.d(TAG, "failed " + statusCode);
+                mProgressDialog.dismiss();
+                Toast.makeText(GuardTrackingActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onRetry(int retryNo) {
+                // called when request is retried
+                Log.d(TAG, "retryNO: " + retryNo);
+                Toast.makeText(GuardTrackingActivity.this, "Taking too long", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
@@ -525,7 +630,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             }
 
-            //if (direction != null)
+            if (direction != null)
                 direction = mMap.addPolyline(polylineOptions);
         }
     }
