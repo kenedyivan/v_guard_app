@@ -89,7 +89,11 @@
         <activity
             android:name=".GuardHomeActivity"
             android:label="@string/title_activity_guard_home"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <service
+            android:name=".Service.CounterIntentService"
+            android:exported="false"></service>
     </application>
 
 </manifest>
