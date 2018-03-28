@@ -171,7 +171,6 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         btnStartGuarding = findViewById(R.id.btnStartGuarding);
         btnStartGuarding.setVisibility(View.GONE);
         mCounterTv = findViewById(R.id.counter);
-        mDoneTv = findViewById(R.id.done);
         crdCounter = findViewById(R.id.crdCounter);
         imgShield = findViewById(R.id.shield);
 
@@ -212,7 +211,6 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
                 if (response.body().success == 1) {
                     Toast.makeText(GuardTrackingActivity.this, "Started guarding", Toast.LENGTH_SHORT).show();
-                    runCounter();
                 }
             }
 
@@ -221,41 +219,6 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             }
         });
-    }
-
-    private void runCounter() {
-        btnStartGuarding.setEnabled(false);
-        btnStartGuarding.setText("Guarding...");
-        crdCounter.setVisibility(View.VISIBLE);
-        new CountDownTimer(10 * 1000, 1000) {
-
-            public void onTick(long millisUntilFinished) {
-                long millis = millisUntilFinished;
-                //mCounterTv.setText(String.valueOf(millisUntilFinished / 1000));
-                //here you can have your logic to set text to edittext
-
-                mCounterTv.setText(String.format(Locale.ENGLISH, "%02d:%02d:%02d",
-                        TimeUnit.MILLISECONDS.toHours(millis),
-                        TimeUnit.MILLISECONDS.toMinutes(millis) -
-                                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
-                        TimeUnit.MILLISECONDS.toSeconds(millis) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))));
-            }
-
-            public void onFinish() {
-                mCounterTv.setVisibility(View.GONE);
-                mDoneTv.setVisibility(View.VISIBLE);
-                mDoneTv.setText("done!");
-                imgShield.setImageResource(R.drawable.protected_shield_blue);
-                btnStartGuarding.setText("Guarding complete...");
-                counterFinished();
-            }
-
-        }.start();
-    }
-
-    private void counterFinished() {
-        Log.d("Counter","Counter finished");
     }
 
 
@@ -672,6 +635,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         super.onResume();
         LocalBroadcastManager.getInstance(this).
                 registerReceiver(mMessageReceiver, new IntentFilter("counterStart"));
+        LocalBroadcastManager.getInstance(this).
+                registerReceiver(mCounterUpdatesReceiver, new IntentFilter("counterUpdates"));
     }
 
     @Override
@@ -679,18 +644,24 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).
                 unregisterReceiver(mMessageReceiver);
-        unbindService(mConnection);
-        mBound = false;
+        LocalBroadcastManager.getInstance(this).
+                unregisterReceiver(mCounterUpdatesReceiver);
+        if(mConnection != null){
+            unbindService(mConnection);
+            mBound = false;
+        }
 
     }
 
-    @Override
+    /*@Override
     protected void onStop() {
         super.onStop();
-        unbindService(mConnection);
-        mBound = false;
+        if(mConnection != null){
+            unbindService(mConnection);
+            mBound = false;
+        }
 
-    }
+    }*/
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
 
@@ -699,15 +670,29 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         public void onReceive(Context context, Intent intent) {
 
             Log.d("BroadCast", "Start counter");
-            Intent i = new Intent(GuardTrackingActivity.this, CounterIntentService.class);
-            bindService(i, mConnection, Context.BIND_AUTO_CREATE);
+            bindCounterService();
+        }
 
-            if (mBound) {
-                int num = mCService.getRandomNumber();
-                Toast.makeText(GuardTrackingActivity.this, "number: " + num, Toast.LENGTH_SHORT).show();
-            }
+    };
 
+    private void bindCounterService() {
+        Intent i = new Intent(GuardTrackingActivity.this, CounterIntentService.class);
+        bindService(i, mConnection, Context.BIND_AUTO_CREATE);
 
+        if (mBound) {
+            int num = mCService.getRandomNumber();
+            Toast.makeText(GuardTrackingActivity.this, "number: " + num, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private BroadcastReceiver mCounterUpdatesReceiver = new BroadcastReceiver() {
+
+        @Override
+
+        public void onReceive(Context context, Intent intent) {
+
+            String updates = intent.getStringExtra("counterUpdate");
+            mCounterTv.setText(updates);
         }
 
     };

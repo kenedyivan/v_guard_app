@@ -27,9 +27,22 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null &&
                 Objects.equals(remoteMessage.getNotification().getTitle(), "starting")) {
             Log.d("Body", "" + remoteMessage.getNotification().getBody());
-            Intent intent = new Intent(MyFirebaseMessagingService.this,CounterIntentService.class);
+            String duration = null;
+            try {
+                JSONObject data = new JSONObject(remoteMessage.getNotification().getBody());
+                duration = data.getString("duration");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Intent intent = new Intent(MyFirebaseMessagingService.this, CounterIntentService.class);
+            intent.putExtra("duration", duration);
             startService(intent);
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("counterStart"));
+
+        } else if (remoteMessage.getNotification() != null &&
+                Objects.equals(remoteMessage.getNotification().getTitle(), "ending")) {
+            Log.d("Body", "" + remoteMessage.getNotification().getBody());
+            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("counterEnd"));
         } else {
             //Firebase message contains lat and lng from owner app
             JSONObject data;
