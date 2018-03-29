@@ -22,6 +22,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
@@ -53,23 +54,28 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Helper.DirectionsJSONParser;
 import com.project.ken.vecurityguard.Models.FCMResponse;
+import com.project.ken.vecurityguard.Models.Guard;
 import com.project.ken.vecurityguard.Models.Guarding;
 import com.project.ken.vecurityguard.Models.Notification;
+import com.project.ken.vecurityguard.Models.Owner;
 import com.project.ken.vecurityguard.Models.Sender;
 import com.project.ken.vecurityguard.Models.Token;
 import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
 import com.project.ken.vecurityguard.Service.CounterIntentService;
 import com.project.ken.vecurityguard.constants.AppData;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -136,6 +142,13 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     CounterIntentService mCService;
     boolean mBound = false;
 
+    ImageView imgExpandable;
+    BottomSheetOwnerFragment mBottomSheet;
+
+    TextView gOwnerName;
+    TextView gCarName;
+    TextView gLicenseNumber;
+    ImageView gAvatar;
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -168,11 +181,17 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         mapFragment.getMapAsync(this);
 
         //Init views
-        btnStartGuarding = findViewById(R.id.btnStartGuarding);
+        btnStartGuarding = findViewById(R.id.btnStartGuarding); ///todo uncomment after setting the bottom sheet
         btnStartGuarding.setVisibility(View.GONE);
         mCounterTv = findViewById(R.id.counter);
         crdCounter = findViewById(R.id.crdCounter);
         imgShield = findViewById(R.id.shield);
+
+        //Owner
+        gOwnerName = findViewById(R.id.owner_name);
+        gCarName = findViewById(R.id.car_name);
+        gLicenseNumber = findViewById(R.id.license_number);
+        gAvatar = findViewById(R.id.avatar);
 
         btnStartGuarding.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,6 +213,53 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         mFCMService = Common.getFCMService();
 
         setUpLocation();
+
+        FirebaseDatabase.getInstance().getReference(Common.user_owner_tbl)
+                .child(ownerId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Owner owner = dataSnapshot.getValue(Owner.class);
+                        setBottomSheetFields(owner);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+    }
+
+    private void setBottomSheetFields(Owner owner) {
+        gOwnerName.setText(owner.getFirstName()+" "+owner.getLastName());
+        gCarName.setText(owner.getBrand()+", "+owner.getModel());
+        gLicenseNumber.setText(owner.getLicenseNumber());
+        if (owner.getAvatar() != null
+                && !TextUtils.isEmpty(owner.getAvatar())) {
+            Picasso.with(this)
+                    .load(owner.getAvatar())
+                    .into(gAvatar);
+        }
+
+        imgExpandable = findViewById(R.id.imageExpandable);
+        mBottomSheet = BottomSheetOwnerFragment.newInstance("Owner bottom sheet");
+        Bundle data = new Bundle();//create bundle instance
+        data.putString("owner_name", owner.getFirstName()+" "+owner.getLastName());//put string to pass with a key value
+        data.putString("car_name", owner.getBrand()+", "+owner.getModel());//put string to pass with a key value
+        data.putString("license_number", owner.getLicenseNumber());//put string to pass with a key value
+        data.putString("avatar", owner.getAvatar());//put string to pass with a key value
+        data.putString("car_image", owner.getCarImage());//put string to pass with a key value
+        data.putString("duration", String.valueOf(duration));//put string to pass with a key value
+        data.putString("total_cost", String.valueOf(totalCost));//put string to pass with a key value
+        mBottomSheet.setArguments(data);
+        imgExpandable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mBottomSheet.show(getSupportFragmentManager(), mBottomSheet.getTag());
+            }
+        });
     }
 
     private void startGuarding(String carOwnerId) {
@@ -228,28 +294,26 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         //CharSequence s = DateFormat.format("yyyy-MM-dd hh:mm:ss", d.getTime());
         long millis = System.currentTimeMillis();
 
+        int calcHours = duration / 60; //since both are ints, you get an int
+        int calMinutes = duration % 60;
+
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         String start_time = cal.getTime().toString();
-        cal.add(Calendar.HOUR_OF_DAY, duration);
+        cal.add(Calendar.HOUR_OF_DAY, calcHours);
+        cal.add(Calendar.MINUTE, calMinutes);
         String end_time = cal.getTime().toString();
         int hours = cal.get(Calendar.HOUR_OF_DAY);
         int minutes = cal.get(Calendar.MINUTE);
         int month = cal.get(Calendar.MONTH) + 1;
         int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        /*Guarding guarding = new Guarding();
-        guarding.setGuard(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        guarding.setOwner(ownerId);
-        guarding.setDuration(String.valueOf(duration));
-        guarding.setStart_time(start_time);
-        guarding.setEnd_time(end_time);
-        guarding.setTotalCost(String.valueOf(totalCost));
-        guarding.setStatus("0");
-        String key = mGuarding.child("guard_time").push().getKey();
-        mGuarding.child(key)
-                .setValue(guarding);*/
-        
+        /*Log.d("Future Time", end_time);
+        Log.d("Hour Time", ""+hours);
+        Log.d("Minute Time", ""+minutes);
+        Log.d("Month Time", ""+month);
+        Log.d("Day Time", ""+day);*/
+
         createGuardingTask(FirebaseAuth.getInstance().getCurrentUser().getUid(),
                 ownerId,String.valueOf(duration),start_time,end_time,
                 String.valueOf(totalCost),"0",minutes,hours,day,month);

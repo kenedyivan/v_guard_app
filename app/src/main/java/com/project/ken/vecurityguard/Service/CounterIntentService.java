@@ -67,7 +67,8 @@ public class CounterIntentService extends IntentService {
             String duration = intent.getStringExtra("duration");
             long d = Long.parseLong(duration);
             Log.d("D", ""+d);
-            final long dura = TimeUnit.HOURS.toMillis(d);
+            //final long dura = TimeUnit.HOURS.toMillis(d);
+            final long dura = TimeUnit.MINUTES.toMillis(d);
             Handler handler = new Handler(Looper.getMainLooper());
 
             handler.post(new Runnable() {

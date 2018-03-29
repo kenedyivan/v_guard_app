@@ -30,7 +30,7 @@ import retrofit2.Response;
 
 public class CarOwnerCallActivity extends AppCompatActivity {
 
-    TextView txtTime, txtAddress, txtDistance;
+    TextView txtTime, txtAddress, txtDistance, txtGuardingTime;
 
     Button btnCancel, btnAccept;
 
@@ -63,6 +63,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         txtAddress = findViewById(R.id.txtAddress);
         txtDistance = findViewById(R.id.txtDistance);
         txtTime = findViewById(R.id.txtTime);
+        txtGuardingTime = findViewById(R.id.txtGuardingTime);
 
         btnAccept = findViewById(R.id.btnAccept);
         btnCancel = findViewById(R.id.btnCancel);
@@ -98,6 +99,11 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
             getDirection(lat, lng);
         }
+
+        int hours = duration / 60; //since both are ints, you get an int
+        int minutes = duration % 60;
+
+        txtGuardingTime.setText("Guarding time "+hours+"hrs : "+minutes+"mins");
 
     }
 

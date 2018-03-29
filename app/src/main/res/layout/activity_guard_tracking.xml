@@ -15,10 +15,10 @@
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="10dp"
         android:paddingBottom="10dp"
+        android:paddingLeft="5dp"
         android:paddingRight="5dp"
-        android:paddingLeft="5dp">
+        android:paddingTop="10dp">
 
         <android.support.v7.widget.CardView
             android:id="@+id/crdCounter"
@@ -66,19 +66,128 @@
             </LinearLayout>
         </android.support.v7.widget.CardView>
 
-
-        <Button
-            android:id="@+id/btnStartGuarding"
+        <android.support.v7.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/imageExpandable"
+            android:layout_alignParentBottom="true"
             android:layout_gravity="bottom"
-            android:layout_marginTop="10dp"
-            android:paddingBottom="21dp"
-            android:paddingTop="21dp"
-            android:text="Start guarding"
-            android:textStyle="bold"
-            android:theme="@style/guardButtonTheme" />
+            app:cardElevation="10dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingRight="10dp"
+                android:paddingLeft="10dp">
+
+                <ImageView
+                    android:id="@+id/imageExpandable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:src="@drawable/ic_keyboard_arrow_up_black_24dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/imageExpandable"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:orientation="vertical"
+                    android:paddingBottom="5dp"
+                    android:weightSum="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="70dp"
+                            android:layout_height="70dp"
+                            android:layout_marginRight="16dp"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="5dp">
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:id="@+id/avatar"
+                                android:layout_width="70dp"
+                                android:layout_height="70dp"
+                                android:src="@drawable/avatar"
+                                app:civ_border_color="#cecece"
+                                app:civ_border_width="2dp" />
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="157dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.51"
+                            android:orientation="vertical"
+                            android:paddingTop="0dp">
+
+                            <TextView
+                                android:id="@+id/owner_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Akena kenedy"
+                                android:textSize="18sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:id="@+id/car_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="toyota"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/license_number"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="uad778h"
+                                android:textSize="12sp" />
+
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <RelativeLayout
+                            android:layout_width="125dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.61"
+                            android:paddingTop="3dp"
+                            android:gravity="right">
+
+                            <Button
+                                android:id="@+id/btnStartGuarding"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="Guard"
+                                android:textStyle="bold"
+                                android:theme="@style/guardButtonTheme" />
+                        </RelativeLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+                <!--<Button
+                    android:id="@+id/btnStartGuarding"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/imageExpandable"
+                    android:layout_marginTop="10dp"
+                    android:paddingBottom="21dp"
+                    android:paddingTop="21dp"
+                    android:text="Start guarding"
+                    android:textStyle="bold"
+                    android:theme="@style/guardButtonTheme" />-->
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
 
     </android.support.design.widget.CoordinatorLayout>
 </FrameLayout>

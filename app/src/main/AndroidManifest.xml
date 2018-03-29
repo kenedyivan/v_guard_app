@@ -85,7 +85,13 @@
         <activity android:name=".CarOwnerCallActivity" />
         <activity
             android:name=".GuardTrackingActivity"
-            android:label="@string/title_activity_guard_tracking" />
+            android:label="@string/title_activity_guard_tracking">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
         <activity
             android:name=".GuardHomeActivity"
             android:label="@string/title_activity_guard_home"
