@@ -254,6 +254,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         data.putString("duration", String.valueOf(duration));//put string to pass with a key value
         data.putString("total_cost", String.valueOf(totalCost));//put string to pass with a key value
         mBottomSheet.setArguments(data);
+        mBottomSheet.show(getSupportFragmentManager(), mBottomSheet.getTag());
         imgExpandable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
