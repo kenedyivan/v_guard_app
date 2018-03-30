@@ -31,6 +31,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -105,6 +107,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     private static final String TAG = GuardTrackingActivity.class.getSimpleName();
 
     Button btnStartGuarding;
+    ProgressBar progressBar;
+    TextView prompt;
 
     private GoogleMap mMap;
 
@@ -193,8 +197,13 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         mapFragment.getMapAsync(this);
 
         //Init views
-        btnStartGuarding = findViewById(R.id.btnStartGuarding); ///todo uncomment after setting the bottom sheet
+        btnStartGuarding = findViewById(R.id.btnStartGuarding);
+        progressBar = findViewById(R.id.progressBar);
+        prompt = findViewById(R.id.prompt);
         btnStartGuarding.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+        prompt.setVisibility(View.VISIBLE);
+        prompt.setText("Get to the car location!");
         mCounterTv = findViewById(R.id.counter);
         crdCounter = findViewById(R.id.crdCounter);
         imgShield = findViewById(R.id.shield);
@@ -432,6 +441,11 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 .fillColor(0x220000FF)
                 .strokeWidth(5.0f));
 
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.destination_marker);
+        mMap.addMarker(new MarkerOptions().position(new LatLng(ownerLat, ownerLng))
+                .title("Destination")
+                .icon(icon));
+
         //Create Geo fencing with radius of 50m
         geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference(Common.guards_tbl));
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(ownerLat, ownerLng), 0.05f);
@@ -478,6 +492,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                             .show();
                 } else if (response.body().success == 1) {
                     btnStartGuarding.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.GONE);
+                    prompt.setVisibility(View.GONE);
                 }
             }
 
@@ -748,6 +764,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             Log.d("BroadCast", "Start counter");
             bindCounterService();
+            btnStartGuarding.setEnabled(false);
+            btnStartGuarding.setText("Guarding");
+            btnStartGuarding.setBackgroundColor(getResources().getColor(R.color.colorAccent));
         }
 
     };
