@@ -45,6 +45,9 @@ public class LoginActivity extends AppCompatActivity {
     FirebaseDatabase db;
     DatabaseReference users;
 
+    //Presence System
+    DatabaseReference onlineRef, currentUserRef;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +57,29 @@ public class LoginActivity extends AppCompatActivity {
         assert actionBar != null;
         actionBar.hide();
 
+        if (getIntent().getBooleanExtra("EXIT", false)) {
+            Log.d("Quit", "Enuf for 2day");
+            //Presence System
+            onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
+            currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)
+                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            onlineRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    //Remove value from Guard table when guard disconnects
+                    currentUserRef.onDisconnect().removeValue();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+            FirebaseDatabase.getInstance().goOffline();
+            FirebaseAuth.getInstance().signOut();
+            //finish();
+        }
 
         //Init Firebase
         auth = FirebaseAuth.getInstance();
@@ -106,8 +132,9 @@ public class LoginActivity extends AppCompatActivity {
                                 .show();
                         waitingDialog.dismiss();
 
-                        FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl)
-                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+
+                        DatabaseReference guardInfo = FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl);
+                        guardInfo.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                 .addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -118,9 +145,10 @@ public class LoginActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onCancelled(DatabaseError databaseError) {
-
+                                        databaseError.getMessage();
                                     }
                                 });
+                        //guardInfo.keepSynced(true);
 
 
                     }

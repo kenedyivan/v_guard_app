@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetDialogFragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,7 +64,14 @@ public class BottomSheetOwnerFragment extends BottomSheetDialogFragment{
         ownerName.setText(mOwnerName);
         carName.setText(mCarName);
         licenseNumber.setText(mLicenseNumber);
-        period.setText(mPeriod+" Hr(s)");
+
+        double doubleDuration = Double.parseDouble(mPeriod);
+        int duration = (int) doubleDuration;
+
+        int hours = duration / 60; //since both are ints, you get an int
+        int minutes = duration % 60;
+
+        period.setText("Guarding time "+hours+"hrs : "+minutes+"mins");
         cost.setText("UGX "+mCost);
 
         if (mAvatar != null

@@ -1,9 +1,11 @@
 package com.project.ken.vecurityguard;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -25,6 +27,7 @@ import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -86,6 +89,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import cz.msebera.android.httpclient.Header;
@@ -108,6 +112,10 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     int duration;
     double totalCost;
     String ownerId;
+
+    //Ending dialog
+    private View dialogView;
+    AlertDialog dialog;
 
     //Play services
     private static final int PLAY_SERVICE_RES_REQUEST = 6001;
@@ -149,6 +157,11 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     TextView gCarName;
     TextView gLicenseNumber;
     ImageView gAvatar;
+
+
+    //Presence System
+    DatabaseReference onlineRef, currentUserRef;
+
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -166,7 +179,6 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             mBound = false;
         }
     };
-
 
 
     @Override
@@ -752,13 +764,72 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     private BroadcastReceiver mCounterUpdatesReceiver = new BroadcastReceiver() {
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
 
         public void onReceive(Context context, Intent intent) {
 
             String updates = intent.getStringExtra("counterUpdate");
             mCounterTv.setText(updates);
+            if (Objects.equals(updates, "Done!")) {
+                guardEndedDialog();
+            }
         }
 
     };
+
+    private void guardEndedDialog() {
+        LayoutInflater inflater = this.getLayoutInflater();
+        dialogView = inflater.inflate(R.layout.dialog_guarding_ended, null);
+        Button mBtnStopGuarding = dialogView.findViewById(R.id.btnStopGuarding);
+        Button mBtnGuardAgain = dialogView.findViewById(R.id.btnGuardAgain);
+
+        mBtnStopGuarding.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void onClick(View view) {
+
+                dialog.dismiss();
+                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("EXIT", true);
+                finishAffinity();
+                ActivityCompat.finishAffinity(GuardTrackingActivity.this);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        mBtnGuardAgain.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("EXIT", true);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(GuardTrackingActivity.this);
+
+        builder.setView(dialogView);
+        // Set other dialog properties
+        // Create the AlertDialog
+        dialog = builder.create();
+
+        dialog.setCancelable(false);
+
+        /*dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(final DialogInterface arg0) {
+
+            }
+        });*/
+
+
+        dialog.show();
+    }
 }

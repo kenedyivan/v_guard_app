@@ -230,6 +230,24 @@ public class GuardHomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+        //Presence System
+        onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
+        currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        onlineRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //Remove value from Guard table when guard disconnects
+                currentUserRef.onDisconnect().removeValue();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         //Init fb storage
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference();
