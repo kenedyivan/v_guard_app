@@ -148,7 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                                         databaseError.getMessage();
                                     }
                                 });
-                        //guardInfo.keepSynced(true);
+                        guardInfo.keepSynced(true);
 
 
                     }
