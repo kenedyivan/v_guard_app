@@ -802,12 +802,16 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         });
 
         mBtnGuardAgain.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
                 dialog.dismiss();
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                Intent intent = new Intent(getApplicationContext(), GuardHomeActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra("EXIT", true);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("AGAIN", true);
+                finishAffinity();
+                ActivityCompat.finishAffinity(GuardTrackingActivity.this);
                 startActivity(intent);
                 finish();
             }

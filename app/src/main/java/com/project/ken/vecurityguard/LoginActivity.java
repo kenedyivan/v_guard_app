@@ -58,7 +58,6 @@ public class LoginActivity extends AppCompatActivity {
         actionBar.hide();
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
-            Log.d("Quit", "Enuf for 2day");
             //Presence System
             onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
             currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)

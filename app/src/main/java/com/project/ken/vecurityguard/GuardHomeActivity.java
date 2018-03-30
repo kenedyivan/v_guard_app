@@ -230,6 +230,9 @@ public class GuardHomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+
+
         //Init fb storage
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference();
@@ -286,6 +289,10 @@ public class GuardHomeActivity extends AppCompatActivity
 
         //Init View
         location_switch = findViewById(R.id.location_switch);
+        if (getIntent().getBooleanExtra("AGAIN", false)) {
+            location_switch.setChecked(true);
+        }
+
         location_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isOnline) {
