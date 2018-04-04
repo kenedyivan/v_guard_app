@@ -52,6 +52,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.JointType;
@@ -63,6 +64,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -78,8 +80,10 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Models.Guard;
+import com.project.ken.vecurityguard.Models.OnlineGuard;
 import com.project.ken.vecurityguard.Models.Token;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
+import com.project.ken.vecurityguard.sessions.SessionManager;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -97,6 +101,7 @@ import dmax.dialog.SpotsDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 
 public class GuardHomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
@@ -120,7 +125,9 @@ public class GuardHomeActivity extends AppCompatActivity
     private static int DISPLACEMENT = 10;
 
     DatabaseReference guards;
+    DatabaseReference searchableGuards;
     GeoFire geoFire;
+    GeoFire searchableGeoFire;
 
     Marker mCurrent;
 
@@ -162,7 +169,7 @@ public class GuardHomeActivity extends AppCompatActivity
 
 
     //Presence System
-    DatabaseReference onlineRef, currentUserRef;
+    DatabaseReference onlineRef, currentUserRef, onlineUserRef, searchableRef;
 
 
     Runnable drawPathRunnable = new Runnable() {
@@ -231,8 +238,6 @@ public class GuardHomeActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
 
-
-
         //Init fb storage
         firebaseStorage = FirebaseStorage.getInstance();
         storageReference = firebaseStorage.getReference();
@@ -273,11 +278,17 @@ public class GuardHomeActivity extends AppCompatActivity
         onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
         currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        searchableRef = FirebaseDatabase.getInstance().getReference("SearchableGuards")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        onlineUserRef = FirebaseDatabase.getInstance().getReference("OnlineGuards")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
         onlineRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //Remove value from Guard table when guard disconnects
                 currentUserRef.onDisconnect().removeValue();
+                searchableRef.onDisconnect().removeValue();
+                onlineUserRef.onDisconnect().removeValue();
             }
 
             @Override
@@ -290,6 +301,8 @@ public class GuardHomeActivity extends AppCompatActivity
         //Init View
         location_switch = findViewById(R.id.location_switch);
         if (getIntent().getBooleanExtra("AGAIN", false)) {
+            SessionManager sessionManager = new SessionManager(GuardHomeActivity.this);
+            sessionManager.setIsAcceptedTracking(false);
             location_switch.setChecked(true);
         }
 
@@ -298,13 +311,37 @@ public class GuardHomeActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton compoundButton, boolean isOnline) {
                 if (isOnline) {
 
+                    SessionManager sessionManager = new SessionManager(GuardHomeActivity.this);
+                    sessionManager.setIsAcceptedTracking(false);
+
                     FirebaseDatabase.getInstance().goOnline(); //Sets connected when switch is turned on
+
+
+                    OnlineGuard onlineGuard = new OnlineGuard();
+                    onlineGuard.setStatus("lkajsdlfjf");
+
+                    onlineUserRef.setValue(onlineGuard)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Log.d("Online", "Online");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.d("Online", "Failed");
+                                }
+                            });
 
                     startLocationUpdates();
                     displayLocation();
                     Snackbar.make(mapFragment.getView(), "You are online", Snackbar.LENGTH_SHORT)
                             .show();
                 } else {
+
+                    SessionManager sessionManager = new SessionManager(GuardHomeActivity.this);
+                    sessionManager.setIsAcceptedTracking(false);
 
                     FirebaseDatabase.getInstance().goOffline(); //Sets disconnected when switch is turned off
 
@@ -338,7 +375,9 @@ public class GuardHomeActivity extends AppCompatActivity
 
         //Geo Fire
         guards = FirebaseDatabase.getInstance().getReference(Common.guards_tbl);
+        searchableGuards = FirebaseDatabase.getInstance().getReference("SearchableGuards");
         geoFire = new GeoFire(guards);
+        searchableGeoFire = new GeoFire(searchableGuards);
 
         setUpLocation();
 
@@ -346,6 +385,7 @@ public class GuardHomeActivity extends AppCompatActivity
 
         updateFirebaseToken();
     }
+
 
     @Override
     public void onBackPressed() {
@@ -843,8 +883,9 @@ public class GuardHomeActivity extends AppCompatActivity
                                 //Add Marker
                                 if (mCurrent != null)
                                     mCurrent.remove();
+                                BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.guard);
                                 mCurrent = mMap.addMarker(new MarkerOptions()
-                                        //.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
+                                        .icon(icon)
                                         .position(new LatLng(latitude, longitude))
                                         .title("You"));
 
@@ -852,9 +893,25 @@ public class GuardHomeActivity extends AppCompatActivity
                                 //Move camera to this position
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
                                 //Draw animation rotate marker
-                                rotateMarker(mCurrent, -360, mMap);
+                                //rotateMarker(mCurrent, -360, mMap);
                             }
                         });
+
+                SessionManager sessionManager = new SessionManager(GuardHomeActivity.this);
+                Log.d("Tracking",""+sessionManager.isTracking());
+                if (!sessionManager.isTracking()) {
+                    searchableGeoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                            new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Log.d("Searchable", "Guard is searchable");
+                                }
+                            });
+                }else{
+                    Log.d("Searchable","You are not searchable");
+                }
+
+
             }
         } else {
             Log.d("ERROR", "Cannot get your location");

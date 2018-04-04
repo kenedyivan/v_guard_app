@@ -12,6 +12,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Models.FCMResponse;
 import com.project.ken.vecurityguard.Models.Notification;
@@ -19,6 +22,7 @@ import com.project.ken.vecurityguard.Models.Sender;
 import com.project.ken.vecurityguard.Models.Token;
 import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
+import com.project.ken.vecurityguard.sessions.SessionManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,6 +50,8 @@ public class CarOwnerCallActivity extends AppCompatActivity {
     double totalCost;
     String ownerDBId;
 
+    //Presence System
+    DatabaseReference searchableRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +114,14 @@ public class CarOwnerCallActivity extends AppCompatActivity {
     }
 
     private void acceptRequest(final String carOwnerId) {
+
+        SessionManager sessionManager = new SessionManager(CarOwnerCallActivity.this);
+        sessionManager.setIsAcceptedTracking(true);
+        //Makes guard unsearchable when busy
+        searchableRef = FirebaseDatabase.getInstance().getReference("SearchableGuards")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        searchableRef.removeValue();
+
         Token token = new Token(carOwnerId);
 
         Notification notification = new Notification("Accept", "Guard has accepted your request");

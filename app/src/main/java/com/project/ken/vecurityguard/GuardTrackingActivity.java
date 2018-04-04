@@ -166,7 +166,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     //Presence System
     DatabaseReference onlineRef, currentUserRef;
 
-    /** Defines callbacks for service binding, passed to bindService() */
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -254,8 +256,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     }
 
     private void setBottomSheetFields(Owner owner) {
-        gOwnerName.setText(owner.getFirstName()+" "+owner.getLastName());
-        gCarName.setText(owner.getBrand()+", "+owner.getModel());
+        gOwnerName.setText(owner.getFirstName() + " " + owner.getLastName());
+        gCarName.setText(owner.getBrand() + ", " + owner.getModel());
         gLicenseNumber.setText(owner.getLicenseNumber());
         if (owner.getAvatar() != null
                 && !TextUtils.isEmpty(owner.getAvatar())) {
@@ -267,8 +269,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         imgExpandable = findViewById(R.id.imageExpandable);
         mBottomSheet = BottomSheetOwnerFragment.newInstance("Owner bottom sheet");
         Bundle data = new Bundle();//create bundle instance
-        data.putString("owner_name", owner.getFirstName()+" "+owner.getLastName());//put string to pass with a key value
-        data.putString("car_name", owner.getBrand()+", "+owner.getModel());//put string to pass with a key value
+        data.putString("owner_name", owner.getFirstName() + " " + owner.getLastName());//put string to pass with a key value
+        data.putString("car_name", owner.getBrand() + ", " + owner.getModel());//put string to pass with a key value
         data.putString("license_number", owner.getLicenseNumber());//put string to pass with a key value
         data.putString("avatar", owner.getAvatar());//put string to pass with a key value
         data.putString("car_image", owner.getCarImage());//put string to pass with a key value
@@ -337,8 +339,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         Log.d("Day Time", ""+day);*/
 
         createGuardingTask(FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                ownerId,String.valueOf(duration),start_time,end_time,
-                String.valueOf(totalCost),"0",minutes,hours,day,month);
+                ownerId, String.valueOf(duration), start_time, end_time,
+                String.valueOf(totalCost), "0", minutes, hours, day, month);
 
     }
 
@@ -352,11 +354,11 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         params.put("startTime", startTime);
         params.put("endTime", endTime);
         params.put("totalCost", totalCost);
-        params.put("status", status );
-        params.put("minute", minute );
-        params.put("hour", hour );
-        params.put("date", date );
-        params.put("month", month );
+        params.put("status", status);
+        params.put("minute", minute);
+        params.put("hour", hour);
+        params.put("date", date);
+        params.put("month", month);
 
         StringBuilder sb = new StringBuilder();
         sb.append("/");
@@ -391,7 +393,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         mProgressDialog.setCancelable(true);
 
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get(AppData.createGuardProcess()+String.valueOf(sb), params, new AsyncHttpResponseHandler() {
+        client.get(AppData.createGuardProcess() + String.valueOf(sb), params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
@@ -602,9 +604,15 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             if (guardMarker != null)
                 guardMarker.remove();
-            guardMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+            /*guardMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
                     .title("You")
-                    .icon(BitmapDescriptorFactory.defaultMarker()));
+                    .icon(BitmapDescriptorFactory.defaultMarker()));*/
+
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.guard);
+            guardMarker = mMap.addMarker(new MarkerOptions()
+                    .icon(icon)
+                    .position(new LatLng(latitude, longitude))
+                    .title("You"));
 
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 17.0f));
 
@@ -717,8 +725,14 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
             }
 
-            if (direction != null)
+            //if (direction != null)
+            try {
                 direction = mMap.addPolyline(polylineOptions);
+            } catch (NullPointerException e) {
+                Toast.makeText(GuardTrackingActivity.this, "Can't get routes at this time", Toast.LENGTH_SHORT)
+                        .show();
+            }
+
         }
     }
 
@@ -739,7 +753,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 unregisterReceiver(mMessageReceiver);
         LocalBroadcastManager.getInstance(this).
                 unregisterReceiver(mCounterUpdatesReceiver);
-        if(mConnection != null){
+        if (mConnection != null) {
             unbindService(mConnection);
             mBound = false;
         }

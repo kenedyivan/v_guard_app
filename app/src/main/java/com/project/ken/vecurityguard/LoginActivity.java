@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Models.Guard;
 import com.project.ken.vecurityguard.Models.Guarding;
+import com.project.ken.vecurityguard.sessions.SessionManager;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -58,6 +59,8 @@ public class LoginActivity extends AppCompatActivity {
         actionBar.hide();
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
+            SessionManager sessionManager = new SessionManager(LoginActivity.this);
+            sessionManager.setIsAcceptedTracking(false);
             //Presence System
             onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
             currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)

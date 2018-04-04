@@ -29,6 +29,9 @@ public class SessionManager {
     // All Shared Preferences Keys
     private static final String IS_LOGIN = "IsLoggedIn";
 
+    // All Shared Preferences Keys
+    private static final String IS_ACCEPTED_TRACKING = "IsAcceptedTracking";
+
     // Guard id (make variable public to access from outside)
     public static final String KEY_ID = "id";
 
@@ -37,6 +40,17 @@ public class SessionManager {
         this._context = context;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         editor = pref.edit();
+    }
+
+    public void setIsAcceptedTracking(Boolean accepted){
+        // Storing login value as TRUE
+        editor.putBoolean(IS_ACCEPTED_TRACKING, accepted);
+        // commit changes
+        editor.commit();
+    }
+
+    public boolean isTracking(){
+        return pref.getBoolean(IS_ACCEPTED_TRACKING, false);
     }
 
     /**
