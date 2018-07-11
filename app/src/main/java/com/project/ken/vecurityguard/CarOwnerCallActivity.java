@@ -109,7 +109,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         int hours = duration / 60; //since both are ints, you get an int
         int minutes = duration % 60;
 
-        txtGuardingTime.setText("Guarding time "+hours+"hrs : "+minutes+"mins");
+        txtGuardingTime.setText("Guarding time " + hours + "hrs : " + minutes + "mins");
 
     }
 
@@ -124,7 +124,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
         Token token = new Token(carOwnerId);
 
-        Notification notification = new Notification("Accept", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        Notification notification = new Notification("Accept", FirebaseAuth.getInstance().getCurrentUser().getUid() + ":" + ownerDBId);
         Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {

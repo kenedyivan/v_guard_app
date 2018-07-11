@@ -190,6 +190,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             mBound = false;
         }
     };
+    private boolean isNoticeDispatched = false;
 
 
     @Override
@@ -476,6 +477,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        final boolean[] isNoticeDispatched = {false};
         mMap = googleMap;
 
         ownerMaker = mMap.addCircle(new CircleOptions()
@@ -493,10 +495,20 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         //Create Geo fencing with radius of 50m
         geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference(Common.guards_tbl));
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(ownerLat, ownerLng), 0.05f);
+
+        //geoQuery.removeAllListeners();
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
-                sendArrivedNotification(carOwnerId);
+
+                if(!isNoticeDispatched[0]){
+                    Log.d("Notice Dispatch", String.valueOf(isNoticeDispatched[0]));
+                    sendArrivedNotification(carOwnerId);
+                    isNoticeDispatched[0] = true;
+                }else{
+                    Log.d("Notice Dispatch", String.valueOf(isNoticeDispatched[0]));
+                }
+
             }
 
             @Override
