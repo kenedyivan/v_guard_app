@@ -5,17 +5,18 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,7 +26,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,8 +70,6 @@ import com.loopj.android.http.RequestParams;
 import com.project.ken.vecurityguard.Common.Common;
 import com.project.ken.vecurityguard.Helper.DirectionsJSONParser;
 import com.project.ken.vecurityguard.Models.FCMResponse;
-import com.project.ken.vecurityguard.Models.Guard;
-import com.project.ken.vecurityguard.Models.Guarding;
 import com.project.ken.vecurityguard.Models.Notification;
 import com.project.ken.vecurityguard.Models.Owner;
 import com.project.ken.vecurityguard.Models.Sender;
@@ -80,6 +78,7 @@ import com.project.ken.vecurityguard.Remote.IFCMService;
 import com.project.ken.vecurityguard.Remote.IGoogleAPI;
 import com.project.ken.vecurityguard.Service.CounterIntentService;
 import com.project.ken.vecurityguard.constants.AppData;
+import com.project.ken.vecurityguard.sessions.SessionManager;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -90,10 +89,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
+import at.markushi.ui.CircleButton;
 import cz.msebera.android.httpclient.Header;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -107,7 +105,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     private static final String TAG = GuardTrackingActivity.class.getSimpleName();
 
     Button btnStartGuarding;
-    ProgressBar progressBar;
+    CircleButton btnCall;
+    //ProgressBar progressBar;
     TextView prompt;
 
     private GoogleMap mMap;
@@ -162,6 +161,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     TextView gLicenseNumber;
     ImageView gAvatar;
 
+    SessionManager sessionManager;
+
+    boolean doubleTap = false;
+
+    MediaPlayer mediaPlayer;
+
 
     //Presence System
     DatabaseReference onlineRef, currentUserRef;
@@ -188,10 +193,33 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
 
     @Override
+    public void onBackPressed() {
+        if(doubleTap){
+            super.onBackPressed();
+        }else{
+            Toast.makeText(this,"Press Back again to exit!", Toast.LENGTH_SHORT)
+                    .show();
+            doubleTap = true;
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    doubleTap = false;
+                }
+            }, 500);
+        }
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_guard_tracking);
 
+        btnCall = findViewById(R.id.btn_call);
+
+
+        sessionManager = new SessionManager(GuardTrackingActivity.this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -200,10 +228,10 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
         //Init views
         btnStartGuarding = findViewById(R.id.btnStartGuarding);
-        progressBar = findViewById(R.id.progressBar);
+        //progressBar = findViewById(R.id.progressBar);
         prompt = findViewById(R.id.prompt);
-        btnStartGuarding.setVisibility(View.GONE);
-        progressBar.setVisibility(View.VISIBLE);
+        //btnStartGuarding.setVisibility(View.GONE);
+        //progressBar.setVisibility(View.VISIBLE);
         prompt.setVisibility(View.VISIBLE);
         prompt.setText("Get to the car location!");
         mCounterTv = findViewById(R.id.counter);
@@ -255,7 +283,21 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     }
 
-    private void setBottomSheetFields(Owner owner) {
+    private void openDialer(String phone_number) {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:"+phone_number));
+        startActivity(intent);
+    }
+
+    private void setBottomSheetFields(final Owner owner) {
+
+        btnCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openDialer(owner.getPhone());
+            }
+        });
+
         gOwnerName.setText(owner.getFirstName() + " " + owner.getLastName());
         gCarName.setText(owner.getBrand() + ", " + owner.getModel());
         gLicenseNumber.setText(owner.getLicenseNumber());
@@ -483,7 +525,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     private void sendArrivedNotification(String carOwnerId) {
         Token token = new Token(carOwnerId);
         Notification notification = new Notification("Arrived",
-                String.format("The guard %s has arrived at your location", Common.currentGuard.getName()));
+                String.format("The guard %s has arrived at your location", sessionManager.getKeyName()));
         Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
@@ -494,7 +536,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                             .show();
                 } else if (response.body().success == 1) {
                     btnStartGuarding.setVisibility(View.VISIBLE);
-                    progressBar.setVisibility(View.GONE);
+                    //progressBar.setVisibility(View.GONE);
                     prompt.setVisibility(View.GONE);
                 }
             }
@@ -754,7 +796,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         LocalBroadcastManager.getInstance(this).
                 unregisterReceiver(mCounterUpdatesReceiver);
         if (mConnection != null) {
-            unbindService(mConnection);
+            try {
+                unbindService(mConnection);
+            }catch (RuntimeException e){
+                Log.w("Activity", e.getMessage());
+            }
+
             mBound = false;
         }
 
@@ -812,6 +859,11 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     };
 
     private void guardEndedDialog() {
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.ringtone);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.start();
+
         LayoutInflater inflater = this.getLayoutInflater();
         dialogView = inflater.inflate(R.layout.dialog_guarding_ended, null);
         Button mBtnStopGuarding = dialogView.findViewById(R.id.btnStopGuarding);
@@ -821,7 +873,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
-
+                mediaPlayer.release();
                 dialog.dismiss();
                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -838,6 +890,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
+                mediaPlayer.release();
                 dialog.dismiss();
                 Intent intent = new Intent(getApplicationContext(), GuardHomeActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -869,4 +922,27 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
         dialog.show();
     }
+
+    @Override
+    protected void onStop() {
+        try{
+            mediaPlayer.release();
+        }catch (RuntimeException e){
+            Log.d("MediaPlayer", e.getMessage());
+        }
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        try{
+            mediaPlayer.release();
+        }catch (RuntimeException e){
+            Log.d("MediaPlayer", e.getMessage());
+        }
+
+        super.onPause();
+    }
+
+
 }

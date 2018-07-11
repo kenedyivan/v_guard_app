@@ -11,6 +11,12 @@ import com.project.ken.vecurityguard.LoginActivity;
  */
 
 public class SessionManager {
+    private static final String KEY_NAME = "NAME";
+    private static final String KEY_EMAIL = "EMAIL";
+    private static final String KEY_PHONE = "PHONE";
+    private static final String KEY_PASSWORD = "PASSWORD";
+    private static final String KEY_AVATAR = "AVATAR";
+    private static final String IS_ONLINE = "IsOnline";
     // Shared Preferences
     SharedPreferences pref;
 
@@ -24,7 +30,7 @@ public class SessionManager {
     int PRIVATE_MODE = 0;
 
     // Sharedpref file name
-    private static final String PREF_NAME = "com.magicdigital.ken.vecurity.vecuritypref";
+    private static final String PREF_NAME = "com.magicdigital.ken.vecurityguard.vecuritypref";
 
     // All Shared Preferences Keys
     private static final String IS_LOGIN = "IsLoggedIn";
@@ -40,6 +46,26 @@ public class SessionManager {
         this._context = context;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         editor = pref.edit();
+    }
+
+    public  String getKeyName() {
+        return pref.getString(KEY_NAME, null);
+    }
+
+    public String getKeyEmail() {
+        return pref.getString(KEY_EMAIL, null);
+    }
+
+    public String getKeyPhone() {
+        return pref.getString(KEY_PHONE, null);
+    }
+
+    public String getKeyPassword() {
+        return pref.getString(KEY_PASSWORD, null);
+    }
+
+    public String getKeyAvatar() {
+        return pref.getString(KEY_AVATAR, null);
     }
 
     public void setIsAcceptedTracking(Boolean accepted){
@@ -62,6 +88,37 @@ public class SessionManager {
 
         // Storing id in pref
         editor.putString(KEY_ID, id);
+
+        // commit changes
+        editor.commit();
+    }
+
+    public void guardData(String name, String email, String phone, String password, String avatar){
+        // Storing login value as TRUE
+        editor.putBoolean(IS_LOGIN, true);
+
+        editor.putString(KEY_NAME, name);
+        editor.putString(KEY_EMAIL, email);
+        editor.putString(KEY_PHONE, phone);
+        editor.putString(KEY_PASSWORD, password);
+        editor.putString(KEY_AVATAR, avatar);
+
+        // commit changes
+        editor.commit();
+    }
+
+    public void guard(String name, String email){
+
+        editor.putString(KEY_NAME, name);
+        editor.putString(KEY_EMAIL, email);
+
+        // commit changes
+        editor.commit();
+    }
+
+    public void guardAvatarImage(String avatar){
+
+        editor.putString(KEY_AVATAR, avatar);
 
         // commit changes
         editor.commit();
@@ -119,5 +176,20 @@ public class SessionManager {
     // Get Login State
     public boolean isLoggedIn() {
         return pref.getBoolean(IS_LOGIN, false);
+    }
+
+    // Get Login State
+    public boolean isOnline() {
+        return pref.getBoolean(IS_ONLINE, false);
+    }
+
+    public void setIsOnline() {
+        editor.putBoolean(IS_ONLINE, true);
+        editor.commit();
+    }
+
+    public void setIsOffline() {
+        editor.putBoolean(IS_ONLINE, false);
+        editor.commit();
     }
 }

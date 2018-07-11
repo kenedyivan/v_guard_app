@@ -49,6 +49,8 @@ public class LoginActivity extends AppCompatActivity {
     //Presence System
     DatabaseReference onlineRef, currentUserRef;
 
+    SessionManager sessionManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,19 @@ public class LoginActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         assert actionBar != null;
         actionBar.hide();
+
+        sessionManager = new SessionManager(LoginActivity.this);
+
+
+        if (sessionManager.isLoggedIn()) {
+            Intent i;
+            i = new Intent(LoginActivity.this, GuardHomeActivity.class);
+            startActivity(i);
+            // close this activity
+            finish();
+        }
+
+
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             SessionManager sessionManager = new SessionManager(LoginActivity.this);
@@ -116,8 +131,8 @@ public class LoginActivity extends AppCompatActivity {
         mRootLayout = findViewById(R.id.rootLayoutLogin);
         mSignupTx = findViewById(R.id.sign_up);
 
-        mEmailEt.setText("kenedyakena@gmail.com");
-        mPasswordEt.setText("123456");
+        /*mEmailEt.setText("kenedyakena@gmail.com");
+        mPasswordEt.setText("123456");*/
     }
 
     private void loginProcess() {
@@ -141,6 +156,12 @@ public class LoginActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         Common.currentGuard = dataSnapshot.getValue(Guard.class);
+                                        sessionManager.guardData(Common.currentGuard.getName(),
+                                                Common.currentGuard.getEmail(),
+                                                Common.currentGuard.getPhone(),
+                                                Common.currentGuard.getPassword(),
+                                                Common.currentGuard.getAvatar());
+
                                         startActivity(new Intent(LoginActivity.this, GuardHomeActivity.class));
                                         finish();
                                     }

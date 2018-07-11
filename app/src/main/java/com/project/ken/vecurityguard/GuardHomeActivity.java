@@ -167,6 +167,8 @@ public class GuardHomeActivity extends AppCompatActivity
     TextView name;
     TextView email;
 
+    SessionManager sessionManager;
+
 
     //Presence System
     DatabaseReference onlineRef, currentUserRef, onlineUserRef, searchableRef;
@@ -237,6 +239,7 @@ public class GuardHomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        sessionManager = new SessionManager(GuardHomeActivity.this);
 
         //Init fb storage
         firebaseStorage = FirebaseStorage.getInstance();
@@ -258,13 +261,13 @@ public class GuardHomeActivity extends AppCompatActivity
         name = nView.findViewById(R.id.name);
         email = nView.findViewById(R.id.email);
 
-        name.setText(Common.currentGuard.getName());
-        email.setText(Common.currentGuard.getEmail());
+        name.setText(sessionManager.getKeyName());
+        email.setText(sessionManager.getKeyEmail());
 
-        if (Common.currentGuard.getAvatar() != null
-                && !TextUtils.isEmpty(Common.currentGuard.getAvatar())) {
+        if (sessionManager.getKeyAvatar() != null
+                && !TextUtils.isEmpty(sessionManager.getKeyAvatar())) {
             Picasso.with(this)
-                    .load(Common.currentGuard.getAvatar())
+                    .load(sessionManager.getKeyAvatar())
                     .into(avatar);
         }
 
@@ -306,6 +309,10 @@ public class GuardHomeActivity extends AppCompatActivity
             location_switch.setChecked(true);
         }
 
+        /*if(sessionManager.isOnline()){
+            location_switch.setChecked(true);
+        }*/
+
         location_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isOnline) {
@@ -338,6 +345,7 @@ public class GuardHomeActivity extends AppCompatActivity
                     displayLocation();
                     Snackbar.make(mapFragment.getView(), "You are online", Snackbar.LENGTH_SHORT)
                             .show();
+                    sessionManager.setIsOnline();
                 } else {
 
                     SessionManager sessionManager = new SessionManager(GuardHomeActivity.this);
@@ -353,6 +361,7 @@ public class GuardHomeActivity extends AppCompatActivity
 
                     Snackbar.make(mapFragment.getView(), "You are offline", Snackbar.LENGTH_SHORT)
                             .show();
+                    sessionManager.setIsOffline();
                 }
 
             }
@@ -453,14 +462,14 @@ public class GuardHomeActivity extends AppCompatActivity
         final EditText mFullName = dialogView.findViewById(R.id.full_name);
         final EditText mPhone = dialogView.findViewById(R.id.phone);
 
-        mFullName.setText(Common.currentGuard.getName());
-        mPhone.setText(Common.currentGuard.getPhone());
+        mFullName.setText(sessionManager.getKeyName());
+        mPhone.setText(sessionManager.getKeyEmail());
 
 
-        if (Common.currentGuard.getAvatar() != null
-                && !TextUtils.isEmpty(Common.currentGuard.getAvatar())) {
+        if (sessionManager.getKeyAvatar() != null
+                && !TextUtils.isEmpty(sessionManager.getKeyAvatar())) {
             Picasso.with(GuardHomeActivity.this)
-                    .load(Common.currentGuard.getAvatar())
+                    .load(sessionManager.getKeyAvatar())
                     .into(mAvatarIv);
         }
 
@@ -504,8 +513,10 @@ public class GuardHomeActivity extends AppCompatActivity
                                                 @Override
                                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                                     Common.currentGuard = dataSnapshot.getValue(Guard.class);
-                                                    name.setText(Common.currentGuard.getName());
-                                                    email.setText(Common.currentGuard.getEmail());
+                                                    sessionManager.guard(Common.currentGuard.getName(),
+                                                            Common.currentGuard.getEmail());
+                                                    name.setText(sessionManager.getKeyName());
+                                                    email.setText(sessionManager.getKeyEmail());
                                                     Toast.makeText(GuardHomeActivity.this, "Updated!", Toast.LENGTH_SHORT).show();
                                                 }
 
@@ -589,12 +600,13 @@ public class GuardHomeActivity extends AppCompatActivity
                                                                         @Override
                                                                         public void onDataChange(DataSnapshot dataSnapshot) {
                                                                             Common.currentGuard = dataSnapshot.getValue(Guard.class);
+                                                                            sessionManager.guardAvatarImage(Common.currentGuard.getAvatar());
                                                                             Toast.makeText(GuardHomeActivity.this, "Uploaded!", Toast.LENGTH_SHORT).show();
                                                                             mAvatarIv.setImageURI(saveUri);
-                                                                            if (Common.currentGuard.getAvatar() != null
-                                                                                    && !TextUtils.isEmpty(Common.currentGuard.getAvatar())) {
+                                                                            if (sessionManager.getKeyAvatar() != null
+                                                                                    && !TextUtils.isEmpty(sessionManager.getKeyAvatar())) {
                                                                                 Picasso.with(GuardHomeActivity.this)
-                                                                                        .load(Common.currentGuard.getAvatar())
+                                                                                        .load(sessionManager.getKeyAvatar())
                                                                                         .into(avatar);
                                                                             }
                                                                         }

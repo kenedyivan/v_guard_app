@@ -124,7 +124,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
         Token token = new Token(carOwnerId);
 
-        Notification notification = new Notification("Accept", "Guard has accepted your request");
+        Notification notification = new Notification("Accept", FirebaseAuth.getInstance().getCurrentUser().getUid());
         Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {

@@ -3,4 +3,7 @@
     <color name="colorPrimary">#F44336</color>
     <color name="colorPrimaryDark">#D32F2F</color>
     <color name="colorAccent">#FFD740</color>
+    <color name="formBackground">#F5F5F5</color>
+    <color name="requestGuardButton">#09091a</color>
+    <color name="colorCallButton">#64DD17</color>
 </resources>
