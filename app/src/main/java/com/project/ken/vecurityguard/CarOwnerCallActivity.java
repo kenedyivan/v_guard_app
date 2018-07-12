@@ -114,7 +114,6 @@ public class CarOwnerCallActivity extends AppCompatActivity {
     }
 
     private void acceptRequest(final String carOwnerId) {
-
         SessionManager sessionManager = new SessionManager(CarOwnerCallActivity.this);
         sessionManager.setIsAcceptedTracking(true);
         //Makes guard unsearchable when busy

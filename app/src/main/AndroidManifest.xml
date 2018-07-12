@@ -84,6 +84,9 @@
         </service>
 
         <activity android:name=".CarOwnerCallActivity" />
+
+        <activity android:name=".CancelRequestActivity" />
+
         <activity
             android:name=".GuardTrackingActivity"
             android:label="@string/title_activity_guard_tracking">

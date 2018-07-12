@@ -190,7 +190,6 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             mBound = false;
         }
     };
-    private boolean isNoticeDispatched = false;
 
 
     @Override
@@ -489,8 +488,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
         BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.destination_marker);
         mMap.addMarker(new MarkerOptions().position(new LatLng(ownerLat, ownerLng))
-                .title("Destination")
-                .icon(icon));
+                .title("Destination"));
+                //.icon(icon));
 
         //Create Geo fencing with radius of 50m
         geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference(Common.guards_tbl));

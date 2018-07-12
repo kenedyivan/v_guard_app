@@ -12,6 +12,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
+import com.project.ken.vecurityguard.CancelRequestActivity;
 import com.project.ken.vecurityguard.CarOwnerCallActivity;
 
 import org.json.JSONException;
@@ -43,6 +44,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 Objects.equals(remoteMessage.getNotification().getTitle(), "ending")) {
             Log.d("Body", "" + remoteMessage.getNotification().getBody());
             LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("counterEnd"));
+        } else if (remoteMessage.getNotification() != null &&
+                Objects.equals(remoteMessage.getNotification().getTitle(), "Cancel")) {
+            //Log.d("Body", "" + remoteMessage.getNotification().getBody());
+            //LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("cancelRequest"));
+            Intent intent = new Intent(getBaseContext(), CancelRequestActivity.class);
+            startActivity(intent);
         } else {
             //Firebase message contains lat and lng from owner app
             JSONObject data;
