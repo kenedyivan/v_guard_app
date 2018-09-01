@@ -895,7 +895,7 @@ public class GuardHomeActivity extends AppCompatActivity
                                 //Add Marker
                                 if (mCurrent != null)
                                     mCurrent.remove();
-                                BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.guard);
+                                BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.dot);
                                 mCurrent = mMap.addMarker(new MarkerOptions()
                                         .icon(icon)
                                         .position(new LatLng(latitude, longitude))

@@ -65,13 +65,7 @@ public class BottomSheetOwnerFragment extends BottomSheetDialogFragment{
         carName.setText(mCarName);
         licenseNumber.setText(mLicenseNumber);
 
-        double doubleDuration = Double.parseDouble(mPeriod);
-        int duration = (int) doubleDuration;
-
-        int hours = duration / 60; //since both are ints, you get an int
-        int minutes = duration % 60;
-
-        period.setText("Guarding time "+hours+"hrs : "+minutes+"mins");
+        period.setText("Guarding time "+mPeriod);
         cost.setText("UGX "+mCost);
 
         if (mAvatar != null

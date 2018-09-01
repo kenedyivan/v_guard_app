@@ -32,9 +32,10 @@
             android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:text="Request canceled!"/>
 
-        <TextView
+       <!-- <TextView
             android:id="@+id/txtTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,7 +58,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white" />-->
 
     </LinearLayout>
 

@@ -46,9 +46,10 @@ public class CarOwnerCallActivity extends AppCompatActivity {
     String carOwnerId;
 
     double lat, lng;
-    int duration;
+    String duration;
     double totalCost;
     String ownerDBId;
+    private String requestKey;
 
     //Presence System
     DatabaseReference searchableRef;
@@ -98,18 +99,16 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         if (getIntent() != null) {
             lat = getIntent().getDoubleExtra("lat", -1.0);
             lng = getIntent().getDoubleExtra("lng", -1.0);
-            duration = getIntent().getIntExtra("duration", 0);
+            duration = getIntent().getStringExtra("duration");
             totalCost = getIntent().getDoubleExtra("total_cost", 0);
             ownerDBId = getIntent().getStringExtra("owner_id");
             carOwnerId = getIntent().getStringExtra("car_owner_id");
+            requestKey = getIntent().getStringExtra("request_key");
 
             getDirection(lat, lng);
         }
 
-        int hours = duration / 60; //since both are ints, you get an int
-        int minutes = duration % 60;
-
-        txtGuardingTime.setText("Guarding time " + hours + "hrs : " + minutes + "mins");
+        txtGuardingTime.setText("Guarding time: "+duration);
 
     }
 
@@ -138,6 +137,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
                     intent.putExtra("owner_id", ownerDBId);
                     intent.putExtra("duration", duration);
                     intent.putExtra("total_cost", totalCost);
+                    intent.putExtra("request_key", requestKey);
                     intent.putExtra("car_owner_id", carOwnerId);
 
                     startActivity(intent);
@@ -210,11 +210,11 @@ public class CarOwnerCallActivity extends AppCompatActivity {
 
                                 //Now, get Distance
                                 JSONObject distance = legsObject.getJSONObject("distance");
-                                txtDistance.setText(distance.getString("text"));
+                                //txtDistance.setText(distance.getString("text")+" away");
 
                                 //Now, get Time
                                 JSONObject time = legsObject.getJSONObject("duration");
-                                txtTime.setText(time.getString("text"));
+                                txtTime.setText(time.getString("text")+" away");
 
                                 //Now, get address
                                 String address = legsObject.getString("end_address");

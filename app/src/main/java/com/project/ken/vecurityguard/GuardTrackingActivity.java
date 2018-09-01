@@ -26,6 +26,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -112,9 +113,10 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     private GoogleMap mMap;
 
     double ownerLat, ownerLng;
-    int duration;
+    String duration;
     double totalCost;
     String ownerId;
+    private String requestKey;
 
     //Ending dialog
     private View dialogView;
@@ -167,6 +169,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     MediaPlayer mediaPlayer;
 
+    private String paymentType;
+
 
     //Presence System
     DatabaseReference onlineRef, currentUserRef;
@@ -194,10 +198,10 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     @Override
     public void onBackPressed() {
-        if(doubleTap){
+        if (doubleTap) {
             super.onBackPressed();
-        }else{
-            Toast.makeText(this,"Press Back again to exit!", Toast.LENGTH_SHORT)
+        } else {
+            Toast.makeText(this, "Press Back again to exit!", Toast.LENGTH_SHORT)
                     .show();
             doubleTap = true;
             Handler handler = new Handler();
@@ -230,7 +234,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         btnStartGuarding = findViewById(R.id.btnStartGuarding);
         //progressBar = findViewById(R.id.progressBar);
         prompt = findViewById(R.id.prompt);
-        //btnStartGuarding.setVisibility(View.GONE);
+        btnStartGuarding.setVisibility(View.GONE);
         //progressBar.setVisibility(View.VISIBLE);
         prompt.setVisibility(View.VISIBLE);
         prompt.setText("Get to the car location!");
@@ -247,17 +251,18 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         btnStartGuarding.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startGuarding(carOwnerId);
+                startGuarding(carOwnerId, requestKey);
             }
         });
 
         if (getIntent() != null) {
             ownerLat = getIntent().getDoubleExtra("lat", -1.0);
             ownerLng = getIntent().getDoubleExtra("lng", -1.0);
-            duration = getIntent().getIntExtra("duration", 0);
+            duration = getIntent().getStringExtra("duration");
             totalCost = getIntent().getDoubleExtra("total_cost", 0);
             ownerId = getIntent().getStringExtra("owner_id");
             carOwnerId = getIntent().getStringExtra("car_owner_id");
+            requestKey = getIntent().getStringExtra("request_key");
         }
 
         mService = Common.getGoogleAPI();
@@ -285,7 +290,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     private void openDialer(String phone_number) {
         Intent intent = new Intent(Intent.ACTION_DIAL);
-        intent.setData(Uri.parse("tel:"+phone_number));
+        intent.setData(Uri.parse("tel:" + phone_number));
         startActivity(intent);
     }
 
@@ -328,14 +333,14 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         });
     }
 
-    private void startGuarding(String carOwnerId) {
+    private void startGuarding(String carOwnerId, String requestKey) {
         Token token = new Token(carOwnerId);
 
         Notification notification = new Notification("Guarding", "Guarding has started");
         Sender sender = new Sender(token.getToken(), notification);
 
 
-        saveGuardingToDB();
+        saveGuardingToDB(requestKey);
 
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
@@ -354,41 +359,43 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     }
 
 
-    private void saveGuardingToDB() {
+    private void saveGuardingToDB(String requestKey) {
         DatabaseReference mGuarding = FirebaseDatabase.getInstance().getReference("Guardings");
         Date d = new Date();
         //CharSequence s = DateFormat.format("yyyy-MM-dd hh:mm:ss", d.getTime());
         long millis = System.currentTimeMillis();
 
-        int calcHours = duration / 60; //since both are ints, you get an int
-        int calMinutes = duration % 60;
-
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         String start_time = cal.getTime().toString();
-        cal.add(Calendar.HOUR_OF_DAY, calcHours);
-        cal.add(Calendar.MINUTE, calMinutes);
+
+        if (duration.equals("15 minutes")) {
+            cal.add(Calendar.MINUTE, 15);
+        } else if (duration.equals("30 minutes")) {
+            cal.add(Calendar.MINUTE, 30);
+        } else if (duration.equals("1 hour")) {
+            cal.add(Calendar.HOUR_OF_DAY, 1);
+        } else if (duration.equals("3 hours")) {
+            cal.add(Calendar.HOUR_OF_DAY, 3);
+        } else if (duration.equals("5 hours")) {
+            cal.add(Calendar.HOUR_OF_DAY, 5);
+        }
+
         String end_time = cal.getTime().toString();
         int hours = cal.get(Calendar.HOUR_OF_DAY);
         int minutes = cal.get(Calendar.MINUTE);
         int month = cal.get(Calendar.MONTH) + 1;
         int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        /*Log.d("Future Time", end_time);
-        Log.d("Hour Time", ""+hours);
-        Log.d("Minute Time", ""+minutes);
-        Log.d("Month Time", ""+month);
-        Log.d("Day Time", ""+day);*/
-
         createGuardingTask(FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                ownerId, String.valueOf(duration), start_time, end_time,
-                String.valueOf(totalCost), "0", minutes, hours, day, month);
+                ownerId, duration, start_time, end_time,
+                String.valueOf(totalCost), "0", minutes, hours, day, month, requestKey);
 
     }
 
     private void createGuardingTask(String guardId, String ownerId, String duration,
                                     String startTime, String endTime, String totalCost, String status,
-                                    int minute, int hour, int date, int month) {
+                                    int minute, int hour, int date, int month, String requestKey) {
         RequestParams params = new RequestParams();
         params.put("guardId", guardId);
         params.put("ownerId", ownerId);
@@ -401,6 +408,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         params.put("hour", hour);
         params.put("date", date);
         params.put("month", month);
+        params.put("requestKey", requestKey);
+        params.put("paymentType", paymentType);
 
         StringBuilder sb = new StringBuilder();
         sb.append("/");
@@ -425,6 +434,10 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         sb.append(date);
         sb.append("/");
         sb.append(month);
+        sb.append("/");
+        sb.append(requestKey);
+        sb.append("/");
+        sb.append(paymentType);
 
         Log.d("Params", String.valueOf(sb));
 
@@ -489,7 +502,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.destination_marker);
         mMap.addMarker(new MarkerOptions().position(new LatLng(ownerLat, ownerLng))
                 .title("Destination"));
-                //.icon(icon));
+        //.icon(icon));
 
         //Create Geo fencing with radius of 50m
         geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference(Common.guards_tbl));
@@ -500,11 +513,11 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
 
-                if(!isNoticeDispatched[0]){
+                if (!isNoticeDispatched[0]) {
                     Log.d("Notice Dispatch", String.valueOf(isNoticeDispatched[0]));
                     sendArrivedNotification(carOwnerId);
                     isNoticeDispatched[0] = true;
-                }else{
+                } else {
                     Log.d("Notice Dispatch", String.valueOf(isNoticeDispatched[0]));
                 }
 
@@ -535,8 +548,19 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     private void sendArrivedNotification(String carOwnerId) {
         Token token = new Token(carOwnerId);
-        Notification notification = new Notification("Arrived",
-                String.format("The guard %s has arrived at your location", sessionManager.getKeyName()));
+        JSONObject payloadJson = null;
+        try {
+            payloadJson = new JSONObject();
+            payloadJson.put("message", String.format("The guard %s has arrived at your location",
+                    sessionManager.getKeyName()))
+                    .put("request_key", requestKey);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String payload = payloadJson.toString();
+
+        Notification notification = new Notification("Arrived", payload);
         Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
@@ -546,9 +570,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                     Toast.makeText(GuardTrackingActivity.this, "Failed", Toast.LENGTH_SHORT)
                             .show();
                 } else if (response.body().success == 1) {
-                    btnStartGuarding.setVisibility(View.VISIBLE);
+                    /*btnStartGuarding.setVisibility(View.VISIBLE);
                     //progressBar.setVisibility(View.GONE);
-                    prompt.setVisibility(View.GONE);
+                    prompt.setVisibility(View.GONE);*/
                 }
             }
 
@@ -661,7 +685,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                     .title("You")
                     .icon(BitmapDescriptorFactory.defaultMarker()));*/
 
-            BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.guard);
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.dot);
             guardMarker = mMap.addMarker(new MarkerOptions()
                     .icon(icon)
                     .position(new LatLng(latitude, longitude))
@@ -797,6 +821,8 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 registerReceiver(mMessageReceiver, new IntentFilter("counterStart"));
         LocalBroadcastManager.getInstance(this).
                 registerReceiver(mCounterUpdatesReceiver, new IntentFilter("counterUpdates"));
+        LocalBroadcastManager.getInstance(this).
+                registerReceiver(mPaymentBroadCast, new IntentFilter("paymentBroadcast"));
     }
 
     @Override
@@ -806,10 +832,12 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
                 unregisterReceiver(mMessageReceiver);
         LocalBroadcastManager.getInstance(this).
                 unregisterReceiver(mCounterUpdatesReceiver);
+        LocalBroadcastManager.getInstance(this).
+                unregisterReceiver(mPaymentBroadCast);
         if (mConnection != null) {
             try {
                 unbindService(mConnection);
-            }catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 Log.w("Activity", e.getMessage());
             }
 
@@ -865,6 +893,33 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
             if (Objects.equals(updates, "Done!")) {
                 guardEndedDialog();
             }
+        }
+
+    };
+
+    private BroadcastReceiver mPaymentBroadCast = new BroadcastReceiver() {
+
+        @Override
+
+        public void onReceive(Context context, Intent intent) {
+
+            String broadcast = intent.getStringExtra("broadcast");
+            paymentType = intent.getStringExtra("payment_type");
+            String requestKey = intent.getStringExtra("request_key");
+
+            btnStartGuarding.setVisibility(View.VISIBLE);
+            //progressBar.setVisibility(View.GONE);
+            prompt.setVisibility(View.GONE);
+            String typeMessage;
+            if (paymentType.equals("auto")) {
+                typeMessage = "Payment automated";
+            } else {
+                typeMessage = "Payment by cash";
+            }
+
+            Toast.makeText(GuardTrackingActivity.this, typeMessage, Toast.LENGTH_SHORT)
+                    .show();
+
         }
 
     };
@@ -936,9 +991,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     @Override
     protected void onStop() {
-        try{
+        try {
             mediaPlayer.release();
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             Log.d("MediaPlayer", e.getMessage());
         }
         super.onStop();
@@ -946,9 +1001,9 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
 
     @Override
     protected void onPause() {
-        try{
+        try {
             mediaPlayer.release();
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             Log.d("MediaPlayer", e.getMessage());
         }
 

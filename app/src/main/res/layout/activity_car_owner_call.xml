@@ -7,23 +7,13 @@
     android:background="@android:color/black"
     tools:context="com.project.ken.vecurityguard.CarOwnerCallActivity">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/map_image"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_centerInParent="true"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:src="@drawable/map"
-        app:civ_border_color="@android:color/holo_green_dark"
-        app:civ_border_width="5dp" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/map_image"
         android:layout_marginTop="16dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
 
         <TextView
             android:id="@+id/txtGuardingTime"
@@ -34,6 +24,19 @@
             android:textSize="24sp"
             android:textStyle="bold"/>
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/map_image"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="20dp"
+            android:src="@drawable/map"
+            app:civ_border_color="@android:color/holo_green_dark"
+            app:civ_border_width="5dp"
+            android:layout_gravity="center_horizontal"/>
+
         <TextView
             android:id="@+id/txtTime"
             android:layout_width="match_parent"
@@ -41,7 +44,7 @@
             android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/txtDistance"
@@ -57,7 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"/>
 
     </LinearLayout>
 

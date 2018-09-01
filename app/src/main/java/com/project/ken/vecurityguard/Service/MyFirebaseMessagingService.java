@@ -21,9 +21,13 @@ import org.json.JSONObject;
 import java.util.Objects;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+    LocalBroadcastManager localBroadcastManager;
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+
+        localBroadcastManager = LocalBroadcastManager.getInstance(getBaseContext());
 
         if (remoteMessage.getNotification() != null &&
                 Objects.equals(remoteMessage.getNotification().getTitle(), "starting")) {
@@ -50,19 +54,42 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             //LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("cancelRequest"));
             Intent intent = new Intent(getBaseContext(), CancelRequestActivity.class);
             startActivity(intent);
+        } else if(remoteMessage.getNotification() != null &&
+                Objects.equals(remoteMessage.getNotification().getTitle(), "Payment")){
+            JSONObject data;
+            String type = null;
+            String requestKey = null;
+
+            try {
+                data = new JSONObject(remoteMessage.getNotification().getBody());
+                type = data.getString("type");
+                requestKey = data.getString("request_key");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            Intent localIntent = new Intent("paymentBroadcast");
+            localIntent.putExtra("broadcast", "Payment");
+            localIntent.putExtra("payment_type", type);
+            localIntent.putExtra("request_key", requestKey);
+            // Send local broadcast
+            localBroadcastManager.sendBroadcast(localIntent);
+
         } else {
             //Firebase message contains lat and lng from owner app
             JSONObject data;
             String ownerId = null;
-            int duration = 0;
+            String duration = null;
             double totalCost = 0;
+            String requestKey = null;
             LatLng carOwnerLocation = null;
 
             try {
                 data = new JSONObject(remoteMessage.getNotification().getBody());
                 ownerId = data.getString("owner_id");
-                duration = data.getInt("duration");
+                duration = data.getString("duration");
                 totalCost = data.getDouble("total_cost");
+                requestKey = data.getString("request_key");
                 JSONObject location = data.getJSONObject("location");
                 carOwnerLocation = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
                 //Log.e("LatLng", "" + location.getDouble("lat") + " " + location.getDouble("lng"));
@@ -79,6 +106,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             intent.putExtra("owner_id", ownerId);
             intent.putExtra("duration", duration);
             intent.putExtra("total_cost", totalCost);
+            intent.putExtra("request_key", requestKey);
             intent.putExtra("car_owner_id", remoteMessage.getNotification().getTitle());
 
 
