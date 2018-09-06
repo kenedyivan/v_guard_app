@@ -79,7 +79,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             //Firebase message contains lat and lng from owner app
             JSONObject data;
             String ownerId = null;
-            String duration = null;
+            int duration = 0;
             double totalCost = 0;
             String requestKey = null;
             LatLng carOwnerLocation = null;
@@ -87,7 +87,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             try {
                 data = new JSONObject(remoteMessage.getNotification().getBody());
                 ownerId = data.getString("owner_id");
-                duration = data.getString("duration");
+                duration = data.getInt("duration");
                 totalCost = data.getDouble("total_cost");
                 requestKey = data.getString("request_key");
                 JSONObject location = data.getJSONObject("location");
@@ -109,6 +109,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             intent.putExtra("request_key", requestKey);
             intent.putExtra("car_owner_id", remoteMessage.getNotification().getTitle());
 
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
             startActivity(intent);
         }

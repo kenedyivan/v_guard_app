@@ -46,7 +46,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
     String carOwnerId;
 
     double lat, lng;
-    String duration;
+    int duration;
     double totalCost;
     String ownerDBId;
     private String requestKey;
@@ -99,7 +99,7 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         if (getIntent() != null) {
             lat = getIntent().getDoubleExtra("lat", -1.0);
             lng = getIntent().getDoubleExtra("lng", -1.0);
-            duration = getIntent().getStringExtra("duration");
+            duration = getIntent().getIntExtra("duration",0);
             totalCost = getIntent().getDoubleExtra("total_cost", 0);
             ownerDBId = getIntent().getStringExtra("owner_id");
             carOwnerId = getIntent().getStringExtra("car_owner_id");
