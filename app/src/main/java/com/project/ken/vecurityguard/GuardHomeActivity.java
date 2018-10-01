@@ -280,11 +280,11 @@ public class GuardHomeActivity extends AppCompatActivity
         //Presence System
         onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
         currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                .child(sessionManager.getUserID());
         searchableRef = FirebaseDatabase.getInstance().getReference("SearchableGuards")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                .child(sessionManager.getUserID());
         onlineUserRef = FirebaseDatabase.getInstance().getReference("OnlineGuards")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                .child(sessionManager.getUserID());
         onlineRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -501,14 +501,14 @@ public class GuardHomeActivity extends AppCompatActivity
                     updateInfo.put("phone", phone);
 
                 DatabaseReference guardInformation = FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl);
-                guardInformation.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                guardInformation.child(sessionManager.getUserID())
                         .updateChildren(updateInfo)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl)
-                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                            .child(sessionManager.getUserID())
                                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                                 @Override
                                                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -587,7 +587,7 @@ public class GuardHomeActivity extends AppCompatActivity
                                         avatarUpdate.put("avatar", uri.toString());
 
                                         DatabaseReference guardInformation = FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl);
-                                        guardInformation.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                        guardInformation.child(sessionManager.getUserID())
                                                 .updateChildren(avatarUpdate)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
@@ -595,7 +595,7 @@ public class GuardHomeActivity extends AppCompatActivity
                                                         if (task.isSuccessful()) {
 
                                                             FirebaseDatabase.getInstance().getReference(Common.user_guard_tbl)
-                                                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                                    .child(sessionManager.getUserID())
                                                                     .addListenerForSingleValueEvent(new ValueEventListener() {
                                                                         @Override
                                                                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -643,7 +643,7 @@ public class GuardHomeActivity extends AppCompatActivity
         DatabaseReference tokens = db.getReference(Common.fcm_tokens_tbl);
 
         Token token = new Token(FirebaseInstanceId.getInstance().getToken());
-        tokens.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+        tokens.child(sessionManager.getUserID())
                 .setValue(token);
     }
 
@@ -888,7 +888,7 @@ public class GuardHomeActivity extends AppCompatActivity
                 final double longitude = Common.mLastLocation.getLongitude();
 
                 //Update To firebase
-                geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                geoFire.setLocation(sessionManager.getUserID(),
                         new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
                             @Override
                             public void onComplete(String key, DatabaseError error) {
@@ -912,7 +912,7 @@ public class GuardHomeActivity extends AppCompatActivity
                 SessionManager sessionManager = new SessionManager(GuardHomeActivity.this);
                 Log.d("Tracking",""+sessionManager.isTracking());
                 if (!sessionManager.isTracking()) {
-                    searchableGeoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                    searchableGeoFire.setLocation(sessionManager.getUserID(),
                             new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {

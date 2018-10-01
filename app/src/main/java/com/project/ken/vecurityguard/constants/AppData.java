@@ -5,8 +5,9 @@ public class AppData {
 
     //Guard pool server
     private static final String SERVER_HOST = "http://10.0.2.2:3000";
+    //private static final String SERVER_HOST = "http://vehcurity.com";
 
     public static String createGuardProcess() {
-        return SERVER_HOST + "/create-guarding-session";
+        return SERVER_HOST + "/guard-sessions-api/create-guarding-session";
     }
 }

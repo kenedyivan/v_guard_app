@@ -117,12 +117,12 @@ public class CarOwnerCallActivity extends AppCompatActivity {
         sessionManager.setIsAcceptedTracking(true);
         //Makes guard unsearchable when busy
         searchableRef = FirebaseDatabase.getInstance().getReference("SearchableGuards")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                .child(sessionManager.getUserID());
         searchableRef.removeValue();
 
         Token token = new Token(carOwnerId);
 
-        Notification notification = new Notification("Accept", FirebaseAuth.getInstance().getCurrentUser().getUid() + ":" + ownerDBId);
+        Notification notification = new Notification("Accept", sessionManager.getUserID() + ":" + ownerDBId);
         Sender sender = new Sender(token.getToken(), notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {

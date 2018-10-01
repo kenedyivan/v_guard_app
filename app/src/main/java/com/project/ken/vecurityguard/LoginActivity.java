@@ -79,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
             //Presence System
             onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
             currentUserRef = FirebaseDatabase.getInstance().getReference(Common.guards_tbl)
-                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    .child(sessionManager.getUserID());
             onlineRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -156,6 +156,7 @@ public class LoginActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         Common.currentGuard = dataSnapshot.getValue(Guard.class);
+                                        sessionManager.createLoginSession(FirebaseAuth.getInstance().getCurrentUser().getUid());
                                         sessionManager.guardData(Common.currentGuard.getName(),
                                                 Common.currentGuard.getEmail(),
                                                 Common.currentGuard.getPhone(),

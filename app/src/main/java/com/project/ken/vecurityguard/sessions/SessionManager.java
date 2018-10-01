@@ -93,6 +93,7 @@ public class SessionManager {
         editor.commit();
     }
 
+
     public void guardData(String name, String email, String phone, String password, String avatar){
         // Storing login value as TRUE
         editor.putBoolean(IS_LOGIN, true);

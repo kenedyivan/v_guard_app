@@ -113,7 +113,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
     private GoogleMap mMap;
 
     double ownerLat, ownerLng;
-    String duration;
+    int duration;
     double totalCost;
     String ownerId;
     private String requestKey;
@@ -258,7 +258,7 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         if (getIntent() != null) {
             ownerLat = getIntent().getDoubleExtra("lat", -1.0);
             ownerLng = getIntent().getDoubleExtra("lng", -1.0);
-            duration = getIntent().getStringExtra("duration");
+            duration = getIntent().getIntExtra("duration",0);
             totalCost = getIntent().getDoubleExtra("total_cost", 0);
             ownerId = getIntent().getStringExtra("owner_id");
             carOwnerId = getIntent().getStringExtra("car_owner_id");
@@ -365,32 +365,29 @@ public class GuardTrackingActivity extends FragmentActivity implements OnMapRead
         //CharSequence s = DateFormat.format("yyyy-MM-dd hh:mm:ss", d.getTime());
         long millis = System.currentTimeMillis();
 
+        int calcHours = duration / 60; //since both are ints, you get an int
+        int calMinutes = duration % 60;
+
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         String start_time = cal.getTime().toString();
-
-        if (duration.equals("15 minutes")) {
-            cal.add(Calendar.MINUTE, 15);
-        } else if (duration.equals("30 minutes")) {
-            cal.add(Calendar.MINUTE, 30);
-        } else if (duration.equals("1 hour")) {
-            cal.add(Calendar.HOUR_OF_DAY, 1);
-        } else if (duration.equals("3 hours")) {
-            cal.add(Calendar.HOUR_OF_DAY, 3);
-        } else if (duration.equals("5 hours")) {
-            cal.add(Calendar.HOUR_OF_DAY, 5);
-        }
-
+        cal.add(Calendar.HOUR_OF_DAY, calcHours);
+        cal.add(Calendar.MINUTE, calMinutes);
         String end_time = cal.getTime().toString();
         int hours = cal.get(Calendar.HOUR_OF_DAY);
         int minutes = cal.get(Calendar.MINUTE);
         int month = cal.get(Calendar.MONTH) + 1;
         int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        createGuardingTask(FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                ownerId, duration, start_time, end_time,
-                String.valueOf(totalCost), "0", minutes, hours, day, month, requestKey);
+        /*Log.d("Future Time", end_time);
+        Log.d("Hour Time", ""+hours);
+        Log.d("Minute Time", ""+minutes);
+        Log.d("Month Time", ""+month);
+        Log.d("Day Time", ""+day);*/
 
+        createGuardingTask(sessionManager.getUserID(),
+                ownerId, String.valueOf(duration), start_time, end_time,
+                String.valueOf(totalCost), "0", minutes, hours, day, month,requestKey);
     }
 
     private void createGuardingTask(String guardId, String ownerId, String duration,
